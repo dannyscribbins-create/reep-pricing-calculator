@@ -224,9 +224,9 @@ with tab_roof:
         if "Standard" in job_type:
             st.markdown('<div class="section-label">Standard Slope (4/12 – 13/12)</div>', unsafe_allow_html=True)
             c1, c2, c3 = st.columns(3)
-            with c1: std_sq     = st.number_input("Measured SQ",  0.0, step=0.01, format="%.2f")
-            with c2: std_facets = st.number_input("Facets",       0,   step=1,    min_value=0)
-            with c3: std_pitch  = st.number_input("Pitch (/12)",  4,   step=1,    min_value=4, max_value=13)
+            with c1: std_sq     = st.number_input("Measured SQ", min_value=0.0, value=0.0, step=0.01, format="%.2f")
+            with c2: std_facets = st.number_input("Facets", min_value=0, value=0, step=1)
+            with c3: std_pitch  = st.number_input("Pitch (/12)", min_value=4, value=4, step=1, max_value=13)
             std_tsq = total_sq_std(std_sq, std_facets) if std_sq > 0 else 0
 
             st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
@@ -234,8 +234,8 @@ with tab_roof:
             if add_low:
                 st.markdown('<div class="section-label">Low Slope Section</div>', unsafe_allow_html=True)
                 lc1, lc2, lc3 = st.columns(3)
-                with lc1: low_sq_in   = st.number_input("Low Measured SQ", 0.0, step=0.01, format="%.2f", key="lsq")
-                with lc2: low_facets  = st.number_input("Low Facets",       0,   step=1,    min_value=0,   key="lfac")
+                with lc1: low_sq_in   = st.number_input("Low Measured SQ", min_value=0.0, value=0.0, step=0.01, format="%.2f", key="lsq")
+                with lc2: low_facets  = st.number_input("Low Facets", min_value=0, value=0, step=1, key="lfac")
                 with lc3: low_pitch   = st.selectbox("Low Pitch", [1, 2, 3], key="lpit")
                 if low_sq_in > 0:
                     low_tsq      = total_sq_low(low_sq_in, low_facets, low_pitch)
@@ -254,9 +254,9 @@ with tab_roof:
             st.markdown('<div class="note">1–9 SQ: 40% minimum GPM &nbsp;|&nbsp; 10–15 SQ: 25% minimum GPM</div>', unsafe_allow_html=True)
             st.markdown('<div class="section-label">Roof Details (HDZ only)</div>', unsafe_allow_html=True)
             sc1, sc2, sc3 = st.columns(3)
-            with sc1: std_sq     = st.number_input("Measured SQ",  0.0, step=0.01, format="%.2f")
-            with sc2: std_facets = st.number_input("Facets",       0,   step=1,    min_value=0)
-            with sc3: std_pitch  = st.number_input("Pitch (/12)",  4,   step=1,    min_value=2, max_value=13)
+            with sc1: std_sq     = st.number_input("Measured SQ", min_value=0.0, value=0.0, step=0.01, format="%.2f")
+            with sc2: std_facets = st.number_input("Facets", min_value=0, value=0, step=1)
+            with sc3: std_pitch  = st.number_input("Pitch (/12)", min_value=2, value=4, step=1, max_value=13)
             std_tsq = total_sq_std(std_sq, std_facets) if std_sq > 0 else 0
             st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
             st.markdown('<div class="section-label">Tier</div>', unsafe_allow_html=True)
