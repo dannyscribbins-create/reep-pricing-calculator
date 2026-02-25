@@ -775,7 +775,7 @@ with tab_repair:
     labor_cost = labor_rate * labor_hours
 
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
-    st.markdown('<div class="lbl">Profit Margin</div>', unsafe_default=True)
+   st.markdown('<div class="lbl">Profit Margin</div>', unsafe_allow_html=True)
 
     gpm_repair = st.slider("GPM", 40, 60, 50, key="repair_gpm") / 100
 
