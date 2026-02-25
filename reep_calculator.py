@@ -3,7 +3,7 @@ import math
 import json
 import re
 import os
-
+from tab6_installed_jobs import render_tab6
 # ─── HANDBOOK LOADER ────────────────────────────────────────────────
 @st.cache_data
 def load_handbook():
@@ -410,6 +410,7 @@ tab_large, tab_small, tab_repair, tab_cpo, tab_handbook = st.tabs([
     "🔧  Repair Calculator",
     "📋  CPO & Rate Guide",
     "📖  Handbook Q&A",
+    "🎨  Installed Jobs"
 ])
 
 # ══════════════════════════════════════════════════════
@@ -876,3 +877,8 @@ with tab_handbook:
                 if c2.button("Browse", key=f"ch_{ch}", use_container_width=True):
                     st.session_state.hb_pending_q = ch_query
                     st.rerun()
+# ══════════════════════════════════════════════════════
+#  TAB 6 — INSTALLED JOBS
+# ══════════════════════════════════════════════════════
+with tab6:
+    render_tab6()
