@@ -34,14 +34,14 @@ def search_handbook(query, chunks, top_k=6):
     return [c for _, c in scored[:top_k] if _ > 0] or chunks[:top_k]
 
 def ask_handbook(question, chunks, api_key):
-    """Call Anthropic API with relevant handbook chunks."""
+    """Call Gemini API with relevant handbook chunks."""
     import urllib.request, urllib.error
     relevant = search_handbook(question, chunks, top_k=7)
     context = "\n\n".join(
         f"[Page {c['page']} — {c['chapter']}]\n{c['text']}"
         for c in relevant
     )
-    system = """You are a helpful assistant for Thunderbird / Accent Roofing sales representatives. 
+    prompt = """You are a helpful assistant for Thunderbird / Accent Roofing sales representatives.
 You answer questions ONLY using the provided handbook excerpts below.
 
 Rules:
@@ -53,29 +53,21 @@ Rules:
 - Keep answers concise but complete — use bullet points for multi-step processes.
 
 HANDBOOK EXCERPTS:
-""" + context
+""" + context + "\n\nQUESTION: " + question
 
     payload = json.dumps({
-        "model": "claude-haiku-4-5-20251001",
-        "max_tokens": 1024,
-        "system": system,
-        "messages": [{"role": "user", "content": question}]
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {"maxOutputTokens": 1024, "temperature": 0.1}
     }).encode()
 
-    req = urllib.request.Request(
-        "https://api.anthropic.com/v1/messages",
-        data=payload,
-        headers={
-            "Content-Type": "application/json",
-            "x-api-key": api_key,
-            "anthropic-version": "2023-06-01"
-        },
-        method="POST"
-    )
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+    req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
+
     try:
         with urllib.request.urlopen(req, timeout=30) as resp:
             data = json.loads(resp.read())
-            return data["content"][0]["text"], relevant
+            text = data["candidates"][0]["content"]["parts"][0]["text"]
+            return text, relevant
     except urllib.error.HTTPError as e:
         err = e.read().decode()
         return f"API error: {e.code} — {err}", []
@@ -801,7 +793,7 @@ with tab_handbook:
 
     api_key = None
     try:
-        api_key = st.secrets["ANTHROPIC_API_KEY"]
+        api_key = st.secrets["GEMINI_API_KEY"]
     except Exception:
         pass
 
@@ -822,7 +814,7 @@ with tab_handbook:
     if not handbook_chunks:
         st.markdown('<div class="warn">Handbook data not found. Make sure <strong>handbook_chunks.json</strong> is in your GitHub repo.</div>', unsafe_allow_html=True)
     elif not api_key:
-        st.markdown('<div class="warn">API key not configured. Add <strong>ANTHROPIC_API_KEY</strong> to your Streamlit secrets under Manage App → Settings → Secrets.</div>', unsafe_allow_html=True)
+        st.markdown('<div class="warn">API key not configured. Add <strong>GEMINI_API_KEY</strong> to your Streamlit secrets under Manage App → Settings → Secrets.</div>', unsafe_allow_html=True)
     else:
         hb_col, ref_col = st.columns([1.3, 1], gap="large")
 
