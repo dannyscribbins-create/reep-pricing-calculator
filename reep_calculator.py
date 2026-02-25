@@ -770,7 +770,7 @@ with tab_repair:
 
     labor_tier = st.selectbox("Labor Type", list(labor_tiers.keys()), key="repair_labor")
     labor_rate = labor_tiers[labor_tier]
-    labor_hours = st.number_input("Labor Hours", value=2, min_value=0.5, step=0.5, key="repair_hours")
+    labor_hours = st.number_input("Labor Hours", value=2.0, min_value=0.5, step=0.5, key="repair_hours")
 
     labor_cost = labor_rate * labor_hours
 
