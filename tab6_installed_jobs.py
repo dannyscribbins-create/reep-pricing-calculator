@@ -26,7 +26,7 @@ def render_tab6():
         selected_manufacturers = st.multiselect(
             "Manufacturer",
             manufacturers,
-            default=manufacturers,
+            default=[],
             key="mfg_filter"
         )
         
@@ -34,7 +34,7 @@ def render_tab6():
         selected_products = st.multiselect(
             "Product Line",
             product_lines,
-            default=product_lines,
+            default=[],
             key="product_filter"
         )
         
@@ -42,7 +42,7 @@ def render_tab6():
         selected_colors = st.multiselect(
             "Color",
             colors,
-            default=colors,
+            default=[],
             key="color_filter"
         )
         
