@@ -404,7 +404,7 @@ def render_cpo_presentation(client_name, product, tiers_with_prices, financing=T
     </div>"""
 
 # ─── TABS ────────────────────────────────────────────────────────────
-tab_large, tab_small, tab_repair, tab_cpo, tab_handbook = st.tabs([
+tab_large, tab_small, tab_repair, tab_cpo, tab_handbook, tab_jobs = st.tabs([
     "🏠  Full Roof (20 SQ+)",
     "📐  Small Job (< 20 SQ)",
     "🔧  Repair Calculator",
