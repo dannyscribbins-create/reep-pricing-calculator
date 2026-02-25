@@ -1,5 +1,89 @@
 import streamlit as st
 import math
+import json
+import re
+import os
+
+# ─── HANDBOOK LOADER ────────────────────────────────────────────────
+@st.cache_data
+def load_handbook():
+    path = os.path.join(os.path.dirname(__file__), "handbook_chunks.json")
+    if os.path.exists(path):
+        with open(path) as f:
+            return json.load(f)
+    return []
+
+def search_handbook(query, chunks, top_k=6):
+    """Keyword-based retrieval — score each chunk by query term overlap."""
+    query_words = set(re.findall(r'\b\w{3,}\b', query.lower()))
+    stop = {"the","and","for","are","you","that","this","with","have","from",
+            "they","will","what","when","how","can","our","your","was","not",
+            "but","all","its","been","their","has","more","also","any","into"}
+    query_words -= stop
+    if not query_words:
+        return chunks[:top_k]
+    scored = []
+    for chunk in chunks:
+        text_lower = chunk["text"].lower()
+        score = sum(text_lower.count(w) for w in query_words)
+        # Boost if query words appear in first 100 chars (likely a heading)
+        heading = text_lower[:100]
+        score += sum(heading.count(w) * 3 for w in query_words)
+        scored.append((score, chunk))
+    scored.sort(key=lambda x: -x[0])
+    return [c for _, c in scored[:top_k] if _ > 0] or chunks[:top_k]
+
+def ask_handbook(question, chunks, api_key):
+    """Call Anthropic API with relevant handbook chunks."""
+    import urllib.request, urllib.error
+    relevant = search_handbook(question, chunks, top_k=7)
+    context = "\n\n".join(
+        f"[Page {c['page']} — {c['chapter']}]\n{c['text']}"
+        for c in relevant
+    )
+    system = """You are a helpful assistant for Thunderbird / Accent Roofing sales representatives. 
+You answer questions ONLY using the provided handbook excerpts below.
+
+Rules:
+- Answer clearly and directly.
+- Always cite the source as "Page X — Chapter Name" at the end of your answer.
+- If multiple pages are relevant, cite all of them.
+- If the answer is not found in the excerpts, say: "I couldn't find that in the handbook. Try searching Chapter X or ask your manager."
+- Never make up information not in the excerpts.
+- Keep answers concise but complete — use bullet points for multi-step processes.
+
+HANDBOOK EXCERPTS:
+""" + context
+
+    payload = json.dumps({
+        "model": "claude-haiku-4-5-20251001",
+        "max_tokens": 1024,
+        "system": system,
+        "messages": [{"role": "user", "content": question}]
+    }).encode()
+
+    req = urllib.request.Request(
+        "https://api.anthropic.com/v1/messages",
+        data=payload,
+        headers={
+            "Content-Type": "application/json",
+            "x-api-key": api_key,
+            "anthropic-version": "2023-06-01"
+        },
+        method="POST"
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            data = json.loads(resp.read())
+            return data["content"][0]["text"], relevant
+    except urllib.error.HTTPError as e:
+        err = e.read().decode()
+        return f"API error: {e.code} — {err}", []
+    except Exception as e:
+        return f"Error: {str(e)}", []
+import json
+import re
+import os
 
 st.set_page_config(page_title="REEP Pricing Calculator", page_icon="🏠", layout="wide")
 
@@ -343,11 +427,12 @@ def render_cpo_presentation(client_name, product, tiers_with_prices, financing=T
     </div>"""
 
 # ─── TABS ────────────────────────────────────────────────────────────
-tab_large, tab_small, tab_repair, tab_cpo = st.tabs([
+tab_large, tab_small, tab_repair, tab_cpo, tab_handbook = st.tabs([
     "🏠  Full Roof (20 SQ+)",
     "📐  Small Job (< 20 SQ)",
     "🔧  Repair Calculator",
     "📋  CPO & Rate Guide",
+    "📖  Handbook Q&A",
 ])
 
 # ══════════════════════════════════════════════════════
@@ -707,3 +792,138 @@ with tab_cpo:
         </tbody>
       </table>
     </div>""", unsafe_allow_html=True)
+
+# ══════════════════════════════════════════════════════
+#  TAB 5 — HANDBOOK Q&A
+# ══════════════════════════════════════════════════════
+with tab_handbook:
+    handbook_chunks = load_handbook()
+
+    # Get API key from Streamlit secrets
+    api_key = None
+    try:
+        api_key = st.secrets["ANTHROPIC_API_KEY"]
+    except Exception:
+        pass
+
+    st.markdown('<div class="lbl">Thunderbird Handbook Assistant</div>', unsafe_allow_html=True)
+    st.markdown("""
+    <div class="note">
+        Ask any question about the handbook — sales process, SOPs, bidding, insurance, pay structure, warranties, and more.
+        Every answer includes a reference to where it can be found.
+    </div>
+    """, unsafe_allow_html=True)
+
+    if not handbook_chunks:
+        st.markdown('<div class="warn">Handbook data not found. Make sure <strong>handbook_chunks.json</strong> is in your GitHub repo.</div>', unsafe_allow_html=True)
+    elif not api_key:
+        st.markdown('<div class="warn">API key not configured. Add <strong>ANTHROPIC_API_KEY</strong> to your Streamlit secrets under Manage App → Settings → Secrets.</div>', unsafe_allow_html=True)
+    else:
+        hb_col, ref_col = st.columns([1.3, 1], gap="large")
+
+        with hb_col:
+            # Suggested questions
+            st.markdown('<div class="lbl">Suggested Questions</div>', unsafe_allow_html=True)
+            suggestions = [
+                "What are the T-Bird expectations for monthly sales?",
+                "How does the pay commission structure work?",
+                "What is the 5-step sales process?",
+                "How do I handle an insurance claim appointment?",
+                "What are the warranty differences between tiers?",
+                "What is the no-show SOP?",
+                "How do I calculate a full replacement bid?",
+                "What are the repair labor rates?",
+            ]
+            cols = st.columns(2)
+            selected_suggestion = None
+            for i, s in enumerate(suggestions):
+                if cols[i % 2].button(s, key=f"sugg_{i}", use_container_width=True):
+                    selected_suggestion = s
+
+            st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
+            st.markdown('<div class="lbl">Ask a Question</div>', unsafe_allow_html=True)
+
+            # Initialize chat history
+            if "hb_messages" not in st.session_state:
+                st.session_state.hb_messages = []
+
+            # Pre-fill from suggestion click
+            default_q = selected_suggestion or ""
+            question = st.text_area(
+                "Question",
+                value=default_q,
+                placeholder="e.g. What is the minimum GPM required for a self-generated lead?",
+                label_visibility="collapsed",
+                height=90,
+                key="hb_question"
+            )
+
+            ask_col, clear_col = st.columns([3, 1])
+            ask_btn   = ask_col.button("🔍  Ask the Handbook", use_container_width=True, type="primary")
+            clear_btn = clear_col.button("Clear History", use_container_width=True)
+
+            if clear_btn:
+                st.session_state.hb_messages = []
+                st.rerun()
+
+            if ask_btn and question.strip():
+                with st.spinner("Searching handbook..."):
+                    answer, sources = ask_handbook(question.strip(), handbook_chunks, api_key)
+                st.session_state.hb_messages.append({
+                    "q": question.strip(),
+                    "a": answer,
+                    "sources": sources
+                })
+
+            # Display chat history newest first
+            if st.session_state.hb_messages:
+                st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
+                st.markdown('<div class="lbl">Answers</div>', unsafe_allow_html=True)
+                for msg in reversed(st.session_state.hb_messages):
+                    st.markdown(f"""
+                    <div class="cardb" style="margin-bottom:14px;">
+                      <div style="font-size:.72rem;color:#7788aa;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Question</div>
+                      <div style="font-size:.92rem;color:#e0e8ff;margin-bottom:12px;font-style:italic;">"{msg['q']}"</div>
+                      <div style="font-size:.72rem;color:#f47c20;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Answer</div>
+                      <div style="font-size:.9rem;color:#d0d8e8;line-height:1.6;white-space:pre-wrap;">{msg['a']}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+        with ref_col:
+            st.markdown('<div class="lbl">Handbook Chapters</div>', unsafe_allow_html=True)
+            chapters = [
+                ("Chapter 1", "The Fundamentals", "Mission, values, expectations, pay chart, appointment types"),
+                ("Chapter 2", "5-Step Sales Success", "Sales flow chart, financing 101, daily checklist"),
+                ("Chapter 3", "Insurance 101", "Claims workflow, overturn process, by-choice appointments"),
+                ("Chapter 4", "Full Replacement Bidding", "Consumption chart, GPM magic, shingle costs, warranties"),
+                ("Chapter 5", "Repair Bidding", "Repair quotes, labor rates, materials, workmanship warranties"),
+                ("Chapter 6", "Restoration Bidding", "Restoration process and pricing"),
+                ("Chapter 7", "SOPs", "Photo requirements, lead SOPs, payment terms, project submission"),
+                ("Chapter 8", "Forms", "Chimney release, Xactimate, itel request forms"),
+                ("Chapter 9", "Sales Tools", "Presentation folder, digital tools, quote attachments"),
+            ]
+            for ch, title, desc in chapters:
+                st.markdown(f"""
+                <div class="card" style="margin-bottom:8px;padding:12px 16px;">
+                  <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:3px;">
+                    <span style="font-family:'Barlow Condensed',sans-serif;font-size:.68rem;font-weight:700;color:#f47c20;text-transform:uppercase;letter-spacing:.1em;">{ch}</span>
+                    <span style="font-size:.88rem;font-weight:600;color:#e0e0e0;">{title}</span>
+                  </div>
+                  <div style="font-size:.75rem;color:#7788aa;">{desc}</div>
+                </div>
+                """, unsafe_allow_html=True)
+
+            if st.session_state.get("hb_messages"):
+                st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
+                st.markdown('<div class="lbl">Pages Referenced (Last Answer)</div>', unsafe_allow_html=True)
+                last = st.session_state.hb_messages[-1]
+                for src in last.get("sources", []):
+                    st.markdown(f"""
+                    <div class="card" style="margin-bottom:6px;padding:10px 14px;">
+                      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                        <span style="font-family:'Barlow Condensed',sans-serif;font-size:.72rem;font-weight:700;color:#f47c20;">PAGE {src['page']}</span>
+                        <span style="font-size:.68rem;color:#7788aa;">{src['chapter']}</span>
+                      </div>
+                      <div style="font-size:.75rem;color:#8899aa;line-height:1.4;">{src['text'][:160].strip()}...</div>
+                    </div>
+                    """, unsafe_allow_html=True)
