@@ -77,11 +77,8 @@ st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
     
-    * {
-        font-family: 'Barlow Condensed', sans-serif;
-    }
-    
     html, body, [class*="css"] { 
+        font-family: 'Barlow', sans-serif;
         background: #ecf0f3; 
         color: #1e3158;
     }
@@ -90,16 +87,14 @@ st.markdown("""
         background-color: #ecf0f3;
     }
     
-    /* Navy Header & Tabs */
     .hdr { 
         background: linear-gradient(135deg, #1e3158 0%, #0d1a2f 100%);
         border-bottom: 4px solid #b92227;
-        padding: 24px 32px;
+        padding: 18px 32px 14px; 
         margin: -80px -80px 24px -80px;
         display: flex;
         align-items: center;
         gap: 20px;
-        flex-wrap: wrap;
     }
     
     .hdr h1 { 
@@ -108,7 +103,7 @@ st.markdown("""
         font-weight: 800;
         color: #fff;
         letter-spacing: 0.04em;
-        margin: 0;
+        margin: 0 0 2px 0;
         text-transform: uppercase;
     }
     
@@ -121,16 +116,8 @@ st.markdown("""
         color: rgba(255, 255, 255, 0.85);
         letter-spacing: 0.1em;
         text-transform: uppercase;
-        margin-top: 8px;
     }
     
-    .logo-img {
-        width: 80px;
-        height: 80px;
-        object-fit: contain;
-    }
-    
-    /* Labels */
     .lbl { 
         font-family: 'Barlow Condensed', sans-serif;
         font-size: 0.68rem;
@@ -141,7 +128,6 @@ st.markdown("""
         margin-bottom: 5px;
     }
     
-    /* Cards */
     .card { 
         background: #fff;
         border: 1px solid #e0e5eb;
@@ -160,7 +146,6 @@ st.markdown("""
         box-shadow: 0 2px 8px rgba(185, 34, 39, 0.1);
     }
     
-    /* Tables */
     .ptbl { 
         width: 100%;
         border-collapse: collapse;
@@ -218,7 +203,6 @@ st.markdown("""
         color: #1e4d7b !important;
     }
     
-    /* Metric Boxes */
     .mbox { 
         background: #fff;
         border: 1px solid #d0d5e0;
@@ -244,7 +228,6 @@ st.markdown("""
         margin-top: 3px;
     }
     
-    /* Chips */
     .chip { 
         display: inline-block;
         background: #e8edf5;
@@ -260,7 +243,6 @@ st.markdown("""
         color: #1e3158;
     }
     
-    /* Alert Boxes */
     .note { 
         background: #e8f0ff;
         border-left: 3px solid #1e4d7b;
@@ -291,14 +273,12 @@ st.markdown("""
         margin: 6px 0;
     }
     
-    /* Divider */
     .hr { 
         border: none;
         border-top: 1px solid #d0d5e0;
         margin: 14px 0;
     }
     
-    /* Form Elements */
     .stSelectbox>div>div, 
     .stNumberInput>div>div>input, 
     .stTextInput>div>div>input {
@@ -314,7 +294,6 @@ st.markdown("""
         font-weight: 600 !important;
     }
     
-    /* Tabs */
     .stTabs [data-baseweb="tab-list"] { 
         background: #1e3158;
         border-radius: 8px 8px 0 0;
@@ -329,13 +308,13 @@ st.markdown("""
         letter-spacing: 0.05em;
         text-transform: uppercase;
         color: rgba(255, 255, 255, 0.7) !important;
-        padding: 12px 20px;
+        padding: 10px 22px;
     }
     
     .stTabs [aria-selected="true"] { 
         background: #b92227 !important;
         color: #fff !important;
-        border-radius: 0;
+        border-radius: 6px 6px 0 0;
     }
     
     .stTabs [data-baseweb="tab-panel"] { 
@@ -343,7 +322,6 @@ st.markdown("""
         padding: 16px 0 0;
     }
     
-    /* Empty State */
     .empty { 
         text-align: center;
         padding: 44px 24px;
@@ -362,7 +340,6 @@ st.markdown("""
         letter-spacing: 0.06em;
     }
     
-    /* Warranty Table */
     .wtbl { 
         width: 100%;
         border-collapse: collapse;
@@ -394,7 +371,6 @@ st.markdown("""
         background: #f5f8fc;
     }
     
-    /* Tier Colors */
     .tier-sig { 
         color: #b99f2a !important;
         font-weight: 700 !important;
@@ -415,424 +391,616 @@ st.markdown("""
         font-weight: 700 !important;
     }
     
-    /* Sidebar */
-    [data-testid="stSidebar"] {
-        background-color: #1e3158;
-    }
-    
-    [data-testid="stSidebar"] * {
-        color: #fff !important;
-    }
-    
-    /* Buttons */
-    .stButton > button {
-        background-color: #b92227 !important;
-        color: white !important;
-        border: none !important;
-        font-weight: 600 !important;
-        padding: 12px 24px !important;
-        border-radius: 4px !important;
-    }
-    
-    .stButton > button:hover {
-        background-color: #9b1820 !important;
-    }
-    
-    /* Mobile Responsive */
-    @media (max-width: 768px) {
-        .hdr {
-            padding: 16px 16px;
-            margin: -1rem -1rem 1.5rem -1rem;
-        }
-        
-        .logo-img {
-            width: 60px;
-            height: 60px;
-        }
-        
-        .hdr h1 {
-            font-size: 1.4rem;
-        }
-        
-        .stTabs [data-baseweb="tab"] {
-            padding: 10px 12px;
-            font-size: 0.75rem;
-        }
-    }
-    
-    @media (max-width: 480px) {
-        .hdr h1 {
-            font-size: 1.1rem;
-        }
-        
-        .stTabs [data-baseweb="tab"] {
-            padding: 8px 8px;
-            font-size: 0.65rem;
-        }
-    }
-    
     </style>
 """, unsafe_allow_html=True)
 
-# Custom Header with Logo
-col_logo, col_header = st.columns([1, 3], gap="medium")
-with col_logo:
-    logo_path = os.path.join(os.path.dirname(__file__), "Copy_of_AccentRoofing-Logo.png")
-    if os.path.exists(logo_path):
-        st.image(logo_path, width=80)
+st.markdown("""
+<div class="hdr">
+  <h1>THUNDERBIRD <span class="acc">HUB</span></h1>
+  <div class="sub">Full Roof · Small Jobs · Repairs · All Products</div>
+</div>
+""", unsafe_allow_html=True)
+
+# ─── HELPERS ────────────────────────────────────────────────────────
+def ru(v):
+    return math.ceil(v)
+
+def waste_std(sq, facets):
+    if facets < 5:      m = 1.12
+    elif facets < 7:    m = 1.15
+    elif facets <= 20:  m = 1.17
+    elif facets <= 35:  m = 1.20
+    else:               m = 1.25
+    return ru(sq * m)
+
+def waste_low(sq, facets, pitch):
+    if pitch == 2:
+        if facets < 5:     m = 1.17
+        elif facets < 7:   m = 1.20
+        elif facets <= 20: m = 1.22
+        elif facets <= 35: m = 1.25
+        else:              m = 1.30
     else:
-        st.markdown('<div style="width:80px;height:80px;background:#1e3158;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;">Logo</div>', unsafe_allow_html=True)
+        if facets < 5:     m = 1.12
+        elif facets < 7:   m = 1.15
+        elif facets <= 20: m = 1.17
+        elif facets <= 35: m = 1.20
+        else:              m = 1.25
+    return ru(sq * m)
 
-with col_header:
-    st.markdown("""
-        <div style="padding-top: 8px;">
-            <div style="font-family: 'Barlow Condensed', sans-serif; font-size: 42px; font-weight: 800; color: #1e3158; margin: 0; line-height: 1.1; letter-spacing: -0.5px;">
-                THUNDERBIRD <span style="color: #b92227;">HUB</span>
-            </div>
-            <div style="color: #666; font-size: 13px; margin-top: 8px; letter-spacing: 0.5px;">
-                Powered by Accent Roofing Service
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
+def low_cost_val(tsq, pitch):
+    return tsq * {1: 375, 2: 370, 3: 350}[pitch]
 
-st.divider()
+def pidx(p):
+    if 4 <= p <= 7:    return 0
+    elif 8 <= p <= 10: return 1
+    else:              return 2
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# APP TABS & CONTENT
-# ═══════════════════════════════════════════════════════════════════════════════
+RATES = {
+    "HDZ":                {"Signature":[296,301,307],"Gold":[335,340,346],"Silver":[320,324,330],"Bronze":[305,311,316]},
+    "UHDZ":               {"Signature":[317,322,328],"Gold":[356,361,367],"Silver":[341,345,351],"Bronze":[326,332,337]},
+    "CAM II / Slateline": {"Signature":[481,486,492],"Gold":[520,525,531],"Silver":[505,509,515],"Bronze":[490,496,501]},
+    "CT Landmark":        {"3-Star Land":[307,311,317],"3-Star Pro":[311,315,321],"4-Star Land":[322,327,333],"4-Star Pro":[326,331,337]},
+    "OC / RS / Prud":     {"OC Dur":[301,306,312],"Royal Sov":[283,288,294],"Prud":[345,350,360]},
+}
 
+TIERS = {
+    "HDZ":                ["Signature","Gold","Silver","Bronze"],
+    "UHDZ":               ["Signature","Gold","Silver","Bronze"],
+    "CAM II / Slateline": ["Signature","Gold","Silver","Bronze"],
+    "CT Landmark":        ["3-Star Land","3-Star Pro","4-Star Land","4-Star Pro"],
+    "OC / RS / Prud":     ["OC Dur","Royal Sov","Prud"],
+}
+
+TIER_CLS = {
+    "Signature":"tier-sig","Gold":"tier-gld","Silver":"tier-sil","Bronze":"tier-brz",
+    "3-Star Land":"tier-sil","3-Star Pro":"tier-sil","4-Star Land":"tier-gld","4-Star Pro":"tier-gld",
+    "OC Dur":"tier-sig","Royal Sov":"tier-sil","Prud":"tier-gld",
+}
+
+LARGE_GPMS = [
+    (0.39, "39% GPM",   False),
+    (0.37, "37% GPM",   False),
+    ("fin35", "Financing (35% base)", True),
+    (0.35, "35% GPM",   False),
+    (0.32, "32% GPM",   False),
+    (0.26, "26% GPM",   False),
+    ("fin18", "Lowest Financing (18% base)", True),
+    (0.18, "18% GPM",   False),
+]
+
+SMALL_GPMS = [
+    (0.60, "60% GPM",   False),
+    (0.50, "50% GPM",   False),
+    ("fin40", "Financing (40% base)", True),
+    (0.40, "40% GPM",   False),
+    (0.35, "35% GPM",   False),
+    (0.30, "30% GPM",   False),
+    ("fin20", "Lowest Financing (20% base)", True),
+    (0.20, "20% GPM",   False),
+]
+
+def gp(cost, m):
+    return ru(cost / (1 - m))
+
+def cost_large(std_tsq, pitch, product, tier, lc=0):
+    return std_tsq * RATES[product][tier][pidx(pitch)] + lc
+
+def cost_small(total_tsq, tier):
+    hi = {"Signature": 335, "Gold": 365, "Silver": 355, "Bronze": 345}[tier]
+    if total_tsq == 1:              return 500
+    if total_tsq == 2:              return 800
+    if 3 <= total_tsq <= 9:         return total_tsq * 350
+    if 10 <= total_tsq <= 19:       return total_tsq * hi
+    return None
+
+def price_rows(cost, gpm_list, custom_gpm=None):
+    pa = {m: gp(cost, m) for m, _, _ in gpm_list if isinstance(m, float)}
+    rows = []
+    for m, label, is_fin in gpm_list:
+        if   m == "fin35": p = pa[0.35] * 1.07
+        elif m == "fin18": p = pa[0.18] * 1.07
+        elif m == "fin40": p = pa[0.40] * 1.07
+        elif m == "fin20": p = pa[0.20] * 1.07
+        else:              p = pa[m]
+        rows.append((label, f"{int(m*100)}%" if isinstance(m, float) else "—", p, is_fin))
+    if custom_gpm:
+        cp = gp(cost, custom_gpm)
+        cf = cp * 1.07
+        rows.append((f"Custom {int(custom_gpm*100)}% GPM", f"{int(custom_gpm*100)}%", cp, False))
+        rows.append(("Custom GPM + Financing", "—", cf, True))
+    return rows
+
+def render_table(rows, std_tsq, show_sq=True):
+    html = ""
+    for i, (label, m_lbl, p, is_fin) in enumerate(rows):
+        cls  = "finr" if is_fin else ("hlr" if i == 0 else "")
+        ppsq = f"${p/std_tsq:,.0f}/SQ" if (show_sq and std_tsq > 0) else ""
+        sq_td = f"<td>{ppsq}</td>" if show_sq else ""
+        html += f'<tr class="{cls}"><td>{label}</td><td>{m_lbl}</td><td class="big">${p:,.0f}</td>{sq_td}</tr>'
+    hdr_sq = "<th>Per SQ</th>" if show_sq else ""
+    return f'<div class="cardb"><table class="ptbl"><thead><tr><th>Level</th><th>GPM</th><th>Sale Price</th>{hdr_sq}</tr></thead><tbody>{html}</tbody></table></div>'
+
+def deck_info(total_tsq, gpm=0.33):
+    sheets = ru((total_tsq * 100) / 32)
+    cost   = sheets * 35
+    price  = ru(cost / (1 - gpm))
+    return sheets, cost, price
+
+MATERIALS = [
+    ("1x6's",                          11, "12 ft board"),
+    ("3-in-1 Sewer Pipe Flashing",      7, "each"),
+    ("3-in Sewer Pipe Collar",          7, "each"),
+    ("3x3 Edge Metal (Rolled Roofing)", 10, "10' piece"),
+    ("3-Tab Shingles",                  32, "bundle"),
+    ("Architectural Shingles",          37, "bundle"),
+    ("Button Caps",                     27, "bucket"),
+    ("Caulking",                         9, "tube"),
+    ("Coil Nails",                      47, "box"),
+    ("HVAC 6-8in Boot",                 40, "each"),
+    ("HVAC Cap",                        20, "each"),
+    ("Ice & Water Shield",              70, "2-SQ roll"),
+    ("Metal Primer (Rolled Roof)",      50, "quart"),
+    ("Plywood / OSB",                   25, "sheet (32 sqft)"),
+    ("Ridge Cap",                       60, "20 ln ft"),
+    ("Ridge Vent",                      12, "4' piece"),
+    ("Roll Roofing Base Sheet",        140, "2-SQ roll"),
+    ("Roll Roofing Cap Sheet",         140, "1-SQ roll"),
+    ("Spray Paint",                     10, "can"),
+    ("Standard Drip Edge / Apron",      10, "10' piece"),
+    ("Starter Shingles",                60, "120 ln ft"),
+    ("Step Flashing",                   65, "box of 100"),
+    ("Synthetic Felt",                  95, "10-SQ roll"),
+    ("Trim Coil (Counter Flashing)",   110, "24x50' roll"),
+]
+
+LABOR = [
+    ("Under 2 Hours",        250, "Under 2 hrs work, $99 or less in materials"),
+    ("2 Hours",              400, "$100-$200 materials, 2-3 hrs work"),
+    ("3-6 Hours (Half Day)", 750, "1+ sheet decking, 3-6 bundles, 2-story 8/12+"),
+    ("7+ Hours (Full Day)", 1100, "Any job taking more than 6 hours"),
+]
+
+TICKS = '<div style="display:flex;justify-content:space-between;margin:-10px 0 10px 0;padding:0 4px;"><div style="text-align:center"><div style="width:1px;height:6px;background:#d0d5e0;margin:0 auto 2px"></div><span style="font-size:.65rem;color:#666">0%</span></div><div style="text-align:center"><div style="width:1px;height:6px;background:#b92227;margin:0 auto 2px"></div><span style="font-size:.65rem;color:#b92227">25%</span></div><div style="text-align:center"><div style="width:1px;height:6px;background:#b92227;margin:0 auto 2px"></div><span style="font-size:.65rem;color:#b92227">50%</span></div><div style="text-align:center"><div style="width:1px;height:6px;background:#b92227;margin:0 auto 2px"></div><span style="font-size:.65rem;color:#b92227">75%</span></div><div style="text-align:center"><div style="width:1px;height:6px;background:#d0d5e0;margin:0 auto 2px"></div><span style="font-size:.65rem;color:#666">100%</span></div></div>'
+
+CPO_DATA = {
+    "Workmanship":    ["15 Year", "15 Year", "15 Year (10 backed by GAF)", "25 Year (25 backed by GAF)"],
+    "Material/Labor": ["50 Year (Pro-rated)", "50 Year (Not Pro-rated)", "50 Year (Not Pro-rated)", "50 Year (Not Pro-rated)"],
+    "Flashing":       ["R&R Step Flashing as needed", "R&R Step Flashing as needed", "R&R Step Flashing as needed", "Replace ALL step flashing"],
+    "Sewer Pipe":     ["Standard", "Standard", "Standard", "Upgrade to Perma Boots"],
+}
+
+TIER_PACKAGE_NAMES = {
+    "Signature": "Signature Protection",
+    "Bronze":    "Bronze Protection",
+    "Silver":    "Silver Protection",
+    "Gold":      "Gold Protection",
+}
+
+TIER_FEATURES = {
+    "Signature": [
+        "50-Year Pro-Rated Material Warranty",
+        "15-Year Workmanship Warranty",
+        "Step Flashing Replaced As Needed",
+        "Standard Pipe Boot Replacement",
+        "Professional Installation",
+    ],
+    "Bronze": [
+        "50-Year Non Pro-Rated Material Warranty",
+        "15-Year Workmanship Warranty",
+        "Step Flashing Replaced As Needed",
+        "Standard Pipe Boot Replacement",
+        "Professional Installation",
+    ],
+    "Silver": [
+        "50-Year Non Pro-Rated Material Warranty",
+        "15-Year GAF-Backed Workmanship Warranty",
+        "Step Flashing Replaced As Needed",
+        "Standard Pipe Boot Replacement",
+        "Professional Installation",
+    ],
+    "Gold": [
+        "50-Year Non Pro-Rated Material Warranty",
+        "25-Year GAF-Backed Workmanship Warranty",
+        "ALL Step Flashing Replaced",
+        "Perma-Boot Pipe Boot Upgrade",
+        "Professional Installation",
+        "Maximum Coverage & Peace of Mind",
+    ],
+}
+
+CPO_DISPLAY_ORDER = ["Signature", "Bronze", "Silver", "Gold"]
+
+TIER_BADGE_COLORS = {
+    "Signature": ("#b99f2a", "#1a1700"),
+    "Bronze":    ("#8b5a3c", "#1a0f00"),
+    "Silver":    ("#7a8fa3", "#111622"),
+    "Gold":      ("#b92227", "#1a0f00"),
+}
+
+def render_cpo_presentation(client_name, product, tiers_with_prices, financing=True):
+    """Render a client-facing CPO presentation card grid."""
+    display_tiers = [t for t in CPO_DISPLAY_ORDER if t in tiers_with_prices]
+    if not display_tiers:
+        display_tiers = list(tiers_with_prices.keys())
+
+    cards_html = ""
+    for tier in display_tiers:
+        cash_price, fin_price = tiers_with_prices[tier]
+        pkg_name  = TIER_PACKAGE_NAMES.get(tier, tier)
+        features  = TIER_FEATURES.get(tier, [])
+        badge_fg, badge_bg = TIER_BADGE_COLORS.get(tier, ("#ffffff", "#1e3158"))
+
+        feat_html = "".join(
+            f'<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:7px;">'
+            f'<span style="color:#2d5a1a;font-size:.85rem;margin-top:1px;flex-shrink:0;">✓</span>'
+            f'<span style="font-size:.82rem;color:#2c3e50;line-height:1.3;">{f}</span>'
+            f'</div>'
+            for f in features
+        )
+
+        fin_html = (
+            f'<div style="margin-top:10px;padding-top:10px;border-top:1px solid #d0d5e0;">'
+            f'<div style="font-size:.65rem;color:#666;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;">Finance Option</div>'
+            f'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:1.4rem;font-weight:700;color:#1e4d7b;">${fin_price:,.0f}</div>'
+            f'</div>'
+        ) if financing and fin_price else ""
+
+        cards_html += f"""
+        <div style="background:#fff;border:1px solid #d0d5e0;border-radius:10px;padding:20px;flex:1;min-width:160px;display:flex;flex-direction:column;box-shadow:0 2px 8px rgba(30,49,88,0.1);">
+          <div style="background:{badge_bg};border:1px solid {badge_fg}44;border-radius:6px;padding:6px 10px;margin-bottom:14px;text-align:center;">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:{badge_fg};margin-bottom:1px;">{tier}</div>
+            <div style="font-size:.75rem;color:{badge_fg}cc;">{pkg_name}</div>
+          </div>
+          <div style="margin-bottom:14px;">
+            <div style="font-size:.62rem;color:#666;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;">Cash Price</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:2rem;font-weight:800;color:#1e3158;line-height:1;">${cash_price:,.0f}</div>
+          </div>
+          <div style="flex:1;margin-bottom:4px;">{feat_html}</div>
+          {fin_html}
+        </div>"""
+
+    client_line = f'<div style="font-size:.78rem;color:#666;margin-bottom:14px;letter-spacing:.04em;">Prepared for: <strong style="color:#1e3158;">{client_name}</strong> &nbsp;·&nbsp; {product}</div>' if client_name and client_name != "—" else f'<div style="font-size:.78rem;color:#666;margin-bottom:14px;">{product}</div>'
+
+    return f"""
+    <div style="background:#fff;border:1px solid #d0d5e0;border-radius:10px;padding:20px;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#b92227;margin-bottom:6px;">Client Presentation</div>
+      {client_line}
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">{cards_html}</div>
+      <div style="margin-top:14px;font-size:.68rem;color:#666;text-align:center;">Prices include all labor, materials, and cleanup. Ask your representative about available financing options.</div>
+    </div>"""
+
+# ─── TABS ────────────────────────────────────────────────────────────
 from tab6_installed_jobs import render_tab6
 
-# Define tabs
 tab_large, tab_small, tab_repair, tab_cpo, tab_handbook, tab_jobs = st.tabs([
-    "Full Roof (20+ SQ)",
-    "Small Job (< 20 SQ)",
-    "Repair Calculator",
-    "CPO & Rate Guide",
-    "Handbook Q&A",
-    "Installed Jobs"
+    "🏠  Full Roof (20 SQ+)",
+    "📐  Small Job (< 20 SQ)",
+    "🔧  Repair Calculator",
+    "📋  CPO & Rate Guide",
+    "📖  Handbook Q&A",
+    "🏘️  Installed Jobs",
 ])
 
-# ══════════════════════════════════════════════════════════════════════════════
-# TAB 1 — FULL ROOF CALCULATOR
-# ══════════════════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════
+#  TAB 1 — FULL ROOF (20 SQ+)
+# ══════════════════════════════════════════════════════
 with tab_large:
-    st.markdown('<div class="lbl">Shingle Product & Pitch</div>', unsafe_allow_html=True)
+    inp_col, out_col = st.columns([1, 1.5], gap="large")
 
-    col_prod, col_pitch = st.columns(2, gap="large")
+    with inp_col:
+        st.markdown('<div class="lbl">Client</div>', unsafe_allow_html=True)
+        client = st.text_input("Client", placeholder="Enter client name...", label_visibility="collapsed", key="lg_client")
 
-    with col_prod:
-        product = st.selectbox(
-            "Product",
-            ["GAF Timberline HDZ", "GAF Timberline UHDZ", "GAF Camelot II / Slateline", "CertainTeed Landmark", "CertainTeed Landmark Pro"],
-            index=0,
-            key="full_product"
-        )
+        st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="lbl">Standard Slope Section (4/12 - 13/12)</div>', unsafe_allow_html=True)
+        c1, c2, c3 = st.columns(3)
+        with c1: std_sq    = st.number_input("Measured SQ",  min_value=0.0, value=0.0, step=0.01, format="%.2f", key="lg_sq")
+        with c2: std_fac   = st.number_input("Facets",       min_value=0,   value=0,   step=1,    key="lg_fac")
+        with c3: std_pitch = st.number_input("Pitch (/12)",  min_value=4,   value=8,   step=1, max_value=13, key="lg_pit")
+        std_tsq = waste_std(std_sq, std_fac) if std_sq > 0 else 0
+        c1.markdown(f'<div style="font-size:.72rem;color:#b92227;margin-top:-10px;padding-left:2px;">Adj: <strong>{std_tsq} SQ</strong></div>' if std_sq > 0 else '<div style="font-size:.72rem;color:#999;margin-top:-10px;padding-left:2px;">Adj: — SQ</div>', unsafe_allow_html=True)
 
-    with col_pitch:
-        pitch_range = st.selectbox(
-            "Pitch Range",
-            ["4–7 (Low)", "8–10 (Moderate)", "11–13+ (Steep)"],
-            index=0,
-            key="full_pitch"
-        )
+        st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
+        add_low = st.checkbox("Add Low Slope Section (1/12 - 3/12)", key="lg_addlow")
+        low_tsq = 0; low_lc = 0
+        if add_low:
+            st.markdown('<div class="lbl">Low Slope Section</div>', unsafe_allow_html=True)
+            lc1, lc2, lc3 = st.columns(3)
+            with lc1: lsq    = st.number_input("Low Measured SQ", min_value=0.0, value=0.0, step=0.01, format="%.2f", key="lg_lsq")
+            with lc2: lfac   = st.number_input("Low Facets",      min_value=0,   value=0,   step=1,    key="lg_lfac")
+            with lc3: lpitch = st.selectbox("Low Pitch", [1, 2, 3], key="lg_lpit")
+            if lsq > 0:
+                low_tsq = waste_low(lsq, lfac, lpitch)
+                lc1.markdown(f'<div style="font-size:.72rem;color:#b92227;margin-top:-10px;padding-left:2px;">Adj: <strong>{low_tsq} SQ</strong></div>', unsafe_allow_html=True)
+                low_lc  = low_cost_val(low_tsq, lpitch)
 
-    st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
+        total_tsq = std_tsq + low_tsq
 
-    col1, col2, col3 = st.columns(3, gap="large")
+        if std_sq > 0 and total_tsq < 20:
+            st.markdown('<div class="warn">Under 20 SQ - use the Small Job tab instead.</div>', unsafe_allow_html=True)
+        elif std_sq > 0:
+            st.markdown(f'<div class="info">Total: {total_tsq} adj. SQ - qualifies as full roof job.</div>', unsafe_allow_html=True)
 
-    with col1:
-        st.markdown('<div class="lbl">Roofing Squares</div>', unsafe_allow_html=True)
-        sq_input = st.number_input("SQ", value=25, min_value=20, step=1, key="full_sq")
+        st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="lbl">Product Line</div>', unsafe_allow_html=True)
+        product = st.selectbox("Product", list(RATES.keys()), key="lg_prod")
 
-    with col2:
-        st.markdown('<div class="lbl">Pitch Multiplier (Waste)</div>', unsafe_allow_html=True)
-        pitch_mult = {"4–7 (Low)": 1.1, "8–10 (Moderate)": 1.15, "11–13+ (Steep)": 1.2}[pitch_range]
-        st.metric("Waste Factor", f"{pitch_mult}x")
+        st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
+        use_cust = st.checkbox("Enable custom GPM", key="lg_cust")
+        custom_gpm = None
+        if use_cust:
+            custom_gpm = st.slider("Custom GPM", min_value=0.01, max_value=0.99, value=0.32, step=0.01, format="%.0f%%", key="lg_gpm")
+            st.markdown(TICKS, unsafe_allow_html=True)
 
-    with col3:
-        st.markdown('<div class="lbl">Adjusted SQ (with waste)</div>', unsafe_allow_html=True)
-        adj_sq = sq_input * pitch_mult
-        st.metric("Adj. SQ", f"{adj_sq:.1f}")
+        st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="lbl">Deck Over GPM</div>', unsafe_allow_html=True)
+        deck_gpm = st.slider("Deck GPM", min_value=0.01, max_value=0.99, value=0.33, step=0.01, format="%.0f%%", key="lg_deck_gpm")
+        st.markdown(TICKS, unsafe_allow_html=True)
 
-    st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="lbl">Client Presentation Price</div>', unsafe_allow_html=True)
+        pres_margin_opts = {"39% Margin": 0.39, "37% Margin": 0.37, "35% Margin": 0.35, "32% Margin": 0.32, "Custom GPM": None}
+        pres_margin_label = st.selectbox("Presentation margin", list(pres_margin_opts.keys()), index=2, label_visibility="collapsed", key="lg_pres_margin")
+        pres_margin = pres_margin_opts[pres_margin_label]
+        if pres_margin is None:
+            pres_margin = custom_gpm if custom_gpm else 0.35
+        show_financing = st.checkbox("Show financing price on presentation", value=True, key="lg_show_fin")
 
-    st.markdown('<div class="lbl">Low Slope Add-On (1/12–3/12)</div>', unsafe_allow_html=True)
-    col_ls1, col_ls2 = st.columns(2)
-    with col_ls1:
-        has_low_slope = st.checkbox("Add Low Slope Section", value=False, key="full_low_slope")
-    with col_ls2:
-        if has_low_slope:
-            low_slope_sq = st.number_input("Low Slope SQ", value=5, min_value=1, step=1, key="full_ls_sq")
+        if std_tsq > 0:
+            sh, sh_cost, sh_price = deck_info(total_tsq, deck_gpm)
+            m1, m2, m3 = st.columns(3)
+            with m1: st.markdown(f'<div class="mbox"><div class="mval">{total_tsq}</div><div class="mlbl">Adj. SQ</div></div>', unsafe_allow_html=True)
+            with m2: st.markdown(f'<div class="mbox"><div class="mval">{sh}</div><div class="mlbl">Deck Sheets</div></div>', unsafe_allow_html=True)
+            with m3: st.markdown(f'<div class="mbox"><div class="mval">${sh_price:,.0f}</div><div class="mlbl">Deck Price</div></div>', unsafe_allow_html=True)
+            if add_low and low_tsq > 0:
+                st.markdown(f'<div class="note">Low slope: {low_tsq} adj. SQ - ${low_lc:,.0f} added to all tier costs</div>', unsafe_allow_html=True)
+
+    with out_col:
+        st.markdown('<div class="lbl">Pricing by Tier</div>', unsafe_allow_html=True)
+        if std_sq == 0:
+            st.markdown('<div class="card"><div class="empty"><div class="ei">📐</div><div class="et">Enter roof measurements to see pricing</div></div></div>', unsafe_allow_html=True)
+        elif total_tsq < 20:
+            st.markdown('<div class="card"><div class="empty"><div class="ei">📐</div><div class="et">Under 20 SQ - switch to Small Job tab</div></div></div>', unsafe_allow_html=True)
         else:
-            low_slope_sq = 0
+            cl = client or "—"
+            st.markdown(f'<div class="chip">Client: <strong>{cl}</strong></div><div class="chip">{product}</div><div class="chip">Pitch {std_pitch}/12</div><div class="chip">Std SQ: <strong>{std_tsq}</strong></div><br><br>', unsafe_allow_html=True)
+            tiers = TIERS[product]
+            tier_tabs = st.tabs(tiers)
+            for i, tier in enumerate(tiers):
+                with tier_tabs[i]:
+                    c = cost_large(std_tsq, std_pitch, product, tier, lc=low_lc)
+                    cpsq = c / std_tsq if std_tsq else 0
+                    rows = price_rows(c, LARGE_GPMS, custom_gpm)
+                    t1, t2, t3 = st.columns(3)
+                    with t1: st.markdown(f'<div class="mbox"><div class="mval">${c:,.0f}</div><div class="mlbl">Total Cost</div></div>', unsafe_allow_html=True)
+                    with t2: st.markdown(f'<div class="mbox"><div class="mval">${cpsq:,.0f}</div><div class="mlbl">Cost / SQ</div></div>', unsafe_allow_html=True)
+                    with t3:
+                        tcls = TIER_CLS.get(tier, "")
+                        st.markdown(f'<div class="mbox"><div class="mval {tcls}">{tier}</div><div class="mlbl">Tier</div></div>', unsafe_allow_html=True)
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    st.markdown(render_table(rows, std_tsq), unsafe_allow_html=True)
 
-    st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
+            st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
+            with st.expander("📋  Client Presentation View", expanded=False):
+                tiers_with_prices = {}
+                for tier in TIERS[product]:
+                    if tier not in TIER_FEATURES:
+                        continue
+                    c = cost_large(std_tsq, std_pitch, product, tier, lc=low_lc)
+                    cash_p = gp(c, pres_margin)
+                    fin_p  = ru(cash_p * 1.07) if show_financing else None
+                    tiers_with_prices[tier] = (cash_p, fin_p)
+                cl = client or "—"
+                st.markdown(render_cpo_presentation(cl, product, tiers_with_prices, financing=show_financing), unsafe_allow_html=True)
 
-    st.markdown('<div class="lbl">Deck Over</div>', unsafe_allow_html=True)
-    col_deck1, col_deck2 = st.columns(2)
-    with col_deck1:
-        deck_over = st.checkbox("Deck Over Job", value=False, key="full_deck")
-    with col_deck2:
-        if deck_over:
-            deck_sq = st.number_input("Deck Over SQ", value=5, min_value=1, step=1, key="full_deck_sq")
-        else:
-            deck_sq = 0
-
-    st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
-
-    st.markdown('<div class="lbl">Gross Profit Margin (GPM) — Select Tier or Custom</div>', unsafe_allow_html=True)
-    gpm_tier = st.select_slider(
-        "GPM Tier",
-        options=[
-            "39% (Base)",
-            "37% (Tier 2)",
-            "35% (Financing)",
-            "35% (Tier 4)",
-            "32% (Tier 5)",
-            "26% (Tier 6)",
-            "18% (Lowest Fin)",
-            "18% (Tier 8)",
-            "Custom"
-        ],
-        value="39% (Base)",
-        key="full_gpm_tier"
-    )
-
-    gpm_values = {
-        "39% (Base)": 0.39,
-        "37% (Tier 2)": 0.37,
-        "35% (Financing)": 0.35,
-        "35% (Tier 4)": 0.35,
-        "32% (Tier 5)": 0.32,
-        "26% (Tier 6)": 0.26,
-        "18% (Lowest Fin)": 0.18,
-        "18% (Tier 8)": 0.18,
-    }
-
-    if gpm_tier == "Custom":
-        gpm_slider = st.slider("GPM Slider", 0, 100, 39, key="full_gpm_custom") / 100
-    else:
-        gpm_slider = gpm_values[gpm_tier]
-
-    st.markdown(f'<div class="mbox"><div class="mval">{gpm_slider*100:.0f}%</div><div class="mlbl">GPM</div></div>', unsafe_allow_html=True)
-
-    st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
-
-    st.markdown('<div class="lbl">Pricing</div>', unsafe_allow_html=True)
-
-    base_cost = adj_sq * 410
-    low_slope_cost = low_slope_sq * 375
-    deck_cost = deck_sq * 350
-    total_cost = base_cost + low_slope_cost + deck_cost
-
-    profit = total_cost * gpm_slider
-    retail = total_cost + profit
-
-    col_m1, col_m2, col_m3 = st.columns(3, gap="large")
-    with col_m1:
-        st.markdown(f'<div class="mbox"><div class="mval">${total_cost:,.0f}</div><div class="mlbl">Cost</div></div>', unsafe_allow_html=True)
-    with col_m2:
-        st.markdown(f'<div class="mbox"><div class="mval">${profit:,.0f}</div><div class="mlbl">Profit ({gpm_slider*100:.0f}%)</div></div>', unsafe_allow_html=True)
-    with col_m3:
-        st.markdown(f'<div class="mbox"><div class="mval">${retail:,.0f}</div><div class="mlbl">Retail Price</div></div>', unsafe_allow_html=True)
-
-    st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
-    st.markdown('<div class="lbl">Financing Options (monthly est.)</div>', unsafe_allow_html=True)
-
-    finance_options = [
-        ("Cash", retail),
-        ("12 Month (0%)", retail / 12),
-        ("24 Month (4.99%)", (retail * 1.0499) / 24),
-        ("36 Month (6.99%)", (retail * 1.0699) / 36),
-        ("60 Month (8.99%)", (retail * 1.0899) / 60),
-    ]
-
-    finance_cols = st.columns(5)
-    for i, (label, amt) in enumerate(finance_options):
-        with finance_cols[i]:
-            st.markdown(f'<div class="mbox"><div style="font-size:.75rem;color:#666;margin-bottom:4px;">{label}</div><div class="mval">${amt:,.0f}</div></div>', unsafe_allow_html=True)
-
-# ══════════════════════════════════════════════════════════════════════════════
-# TAB 2 — SMALL JOB CALCULATOR
-# ══════════════════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════
+#  TAB 2 — SMALL JOB (< 20 SQ)
+# ══════════════════════════════════════════════════════
 with tab_small:
-    st.markdown('<div class="lbl">Small Job Pricing (1–19 SQ)</div>', unsafe_allow_html=True)
+    sl, sr = st.columns([1, 1.5], gap="large")
 
-    sq_small = st.number_input("Roofing Squares", value=5, min_value=1, max_value=19, step=1, key="small_sq")
+    with sl:
+        st.markdown('<div class="lbl">Client</div>', unsafe_allow_html=True)
+        s_client = st.text_input("Client", placeholder="Enter client name...", label_visibility="collapsed", key="sm_client")
+        st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="note">Under 20 total adjusted SQ. HDZ product only.</div>', unsafe_allow_html=True)
+        st.markdown('<div class="lbl">Standard Slope (2/12 - 13/12)</div>', unsafe_allow_html=True)
+        sc1, sc2, sc3 = st.columns(3)
+        with sc1: s_sq    = st.number_input("Measured SQ", min_value=0.0, value=0.0, step=0.01, format="%.2f", key="sm_sq")
+        with sc2: s_fac   = st.number_input("Facets",      min_value=0,   value=0,   step=1,    key="sm_fac")
+        with sc3: s_pitch = st.number_input("Pitch (/12)", min_value=2,   value=6,   step=1, max_value=13, key="sm_pit")
+        s_std_tsq = waste_std(s_sq, s_fac) if s_sq > 0 else 0
+        sc1.markdown(f'<div style="font-size:.72rem;color:#b92227;margin-top:-10px;padding-left:2px;">Adj: <strong>{s_std_tsq} SQ</strong></div>' if s_sq > 0 else '<div style="font-size:.72rem;color:#999;margin-top:-10px;padding-left:2px;">Adj: — SQ</div>', unsafe_allow_html=True)
 
-    if sq_small > 19:
-        st.markdown('<div class="warn">⚠ Over 19 SQ — use Full Roof tab</div>', unsafe_allow_html=True)
-        sq_small = 19
+        st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
+        s_add_low = st.checkbox("Add Low Slope Section", key="sm_addlow")
+        s_low_tsq = 0; s_low_lc = 0
+        if s_add_low:
+            st.markdown('<div class="lbl">Low Slope Section</div>', unsafe_allow_html=True)
+            slc1, slc2, slc3 = st.columns(3)
+            with slc1: slsq    = st.number_input("Low Measured SQ", min_value=0.0, value=0.0, step=0.01, format="%.2f", key="sm_lsq")
+            with slc2: slfac   = st.number_input("Low Facets",      min_value=0,   value=0,   step=1,    key="sm_lfac")
+            with slc3: slpitch = st.selectbox("Low Pitch", [1, 2, 3], key="sm_lpit")
+            if slsq > 0:
+                s_low_tsq = waste_low(slsq, slfac, slpitch)
+                slc1.markdown(f'<div style="font-size:.72rem;color:#b92227;margin-top:-10px;padding-left:2px;">Adj: <strong>{s_low_tsq} SQ</strong></div>', unsafe_allow_html=True)
+                s_low_lc  = low_cost_val(s_low_tsq, slpitch)
 
-    small_job_rates = {
-        1: 500,
-        2: 800,
-        3: 1050,
-        4: 1400,
-        5: 1750,
-        6: 2100,
-        7: 2450,
-        8: 2800,
-        9: 3150,
-        10: 3500,
-        11: 3850,
-        12: 4200,
-        13: 4550,
-        14: 4900,
-        15: 5250,
-        16: 5600,
-        17: 5950,
-        18: 6300,
-        19: 6650,
-    }
+        s_total_tsq = s_std_tsq + s_low_tsq
 
-    cost = small_job_rates.get(int(sq_small), 0)
+        if s_sq > 0 and s_total_tsq >= 20:
+            st.markdown('<div class="warn">20+ SQ - switch to Full Roof tab instead.</div>', unsafe_allow_html=True)
+        elif s_sq > 0:
+            st.markdown(f'<div class="info">Total: {s_total_tsq} adj. SQ - qualifies as small job.</div>', unsafe_allow_html=True)
 
-    st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
-    st.markdown('<div class="lbl">GPM Tier</div>', unsafe_allow_html=True)
+        st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="lbl">GPM Tier</div>', unsafe_allow_html=True)
+        sm_use_cust = st.checkbox("Enable custom GPM", key="sm_cust")
+        s_custom_gpm = None
+        if sm_use_cust:
+            s_custom_gpm = st.slider("Custom GPM", min_value=0.01, max_value=0.99, value=0.50, step=0.01, format="%.0f%%", key="sm_gpm")
+            st.markdown(TICKS, unsafe_allow_html=True)
 
-    gpm_tier_small = st.select_slider(
-        "GPM",
-        options=["39%", "37%", "35% (Fin)", "35%", "32%", "26%", "18% (Fin)", "18%", "Custom"],
-        value="39%",
-        key="small_gpm"
-    )
+        st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="lbl">Client Presentation Price</div>', unsafe_allow_html=True)
+        sm_pres_margin_opts = {"60% Margin": 0.60, "50% Margin": 0.50, "40% Margin": 0.40, "Custom GPM": None}
+        sm_pres_margin_label = st.selectbox("Presentation margin", list(sm_pres_margin_opts.keys()), index=2, label_visibility="collapsed", key="sm_pres_margin")
+        sm_pres_margin = sm_pres_margin_opts[sm_pres_margin_label]
+        if sm_pres_margin is None:
+            sm_pres_margin = s_custom_gpm if s_custom_gpm else 0.40
+        sm_show_fin = st.checkbox("Show financing price on presentation", value=True, key="sm_show_fin")
 
-    gpm_vals = {"39%": 0.39, "37%": 0.37, "35% (Fin)": 0.35, "35%": 0.35, "32%": 0.32, "26%": 0.26, "18% (Fin)": 0.18, "18%": 0.18}
+    with sr:
+        st.markdown('<div class="lbl">Pricing by Tier</div>', unsafe_allow_html=True)
+        if s_sq == 0:
+            st.markdown('<div class="card"><div class="empty"><div class="ei">📐</div><div class="et">Enter roof measurements to see pricing</div></div></div>', unsafe_allow_html=True)
+        elif s_total_tsq >= 20:
+            st.markdown('<div class="card"><div class="empty"><div class="ei">📐</div><div class="et">20+ SQ - switch to Full Roof tab</div></div></div>', unsafe_allow_html=True)
+        else:
+            scl = s_client or "—"
+            st.markdown(f'<div class="chip">Client: <strong>{scl}</strong></div><div class="chip">HDZ</div><div class="chip">Pitch {s_pitch}/12</div><div class="chip">Total SQ: <strong>{s_total_tsq}</strong></div><br><br>', unsafe_allow_html=True)
+            sm_tiers = ["Signature", "Gold", "Silver", "Bronze"]
+            sm_tabs  = st.tabs(sm_tiers)
+            for i, tier in enumerate(sm_tiers):
+                with sm_tabs[i]:
+                    base_cost = cost_small(s_total_tsq, tier)
+                    if base_cost is None:
+                        st.markdown('<div class="warn">Out of range for small job (must be 1-19 SQ).</div>', unsafe_allow_html=True)
+                        continue
+                    c = base_cost + s_low_lc
+                    rows = price_rows(c, SMALL_GPMS, s_custom_gpm)
+                    sm1, sm2 = st.columns(2)
+                    with sm1: st.markdown(f'<div class="mbox"><div class="mval">${c:,.0f}</div><div class="mlbl">Total Cost</div></div>', unsafe_allow_html=True)
+                    with sm2:
+                        tcls = TIER_CLS.get(tier, "")
+                        st.markdown(f'<div class="mbox"><div class="mval {tcls}">{tier}</div><div class="mlbl">Tier</div></div>', unsafe_allow_html=True)
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    st.markdown(render_table(rows, s_total_tsq, show_sq=False), unsafe_allow_html=True)
 
-    if gpm_tier_small == "Custom":
-        gpm_small = st.slider("GPM", 0, 100, 39, key="small_gpm_custom") / 100
-    else:
-        gpm_small = gpm_vals[gpm_tier_small]
+            st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
+            with st.expander("📋  Client Presentation View", expanded=False):
+                sm_tiers_prices = {}
+                for tier in ["Signature", "Gold", "Silver", "Bronze"]:
+                    base_cost = cost_small(s_total_tsq, tier)
+                    if base_cost is None:
+                        continue
+                    c = base_cost + s_low_lc
+                    cash_p = gp(c, sm_pres_margin)
+                    fin_p  = ru(cash_p * 1.07) if sm_show_fin else None
+                    sm_tiers_prices[tier] = (cash_p, fin_p)
+                scl = s_client or "—"
+                st.markdown(render_cpo_presentation(scl, "HDZ", sm_tiers_prices, financing=sm_show_fin), unsafe_allow_html=True)
 
-    profit_small = cost * gpm_small
-    retail_small = cost + profit_small
-
-    col_s1, col_s2, col_s3 = st.columns(3, gap="large")
-    with col_s1:
-        st.markdown(f'<div class="mbox"><div class="mval">${cost:,.0f}</div><div class="mlbl">Cost</div></div>', unsafe_allow_html=True)
-    with col_s2:
-        st.markdown(f'<div class="mbox"><div class="mval">${profit_small:,.0f}</div><div class="mlbl">Profit</div></div>', unsafe_allow_html=True)
-    with col_s3:
-        st.markdown(f'<div class="mbox"><div class="mval">${retail_small:,.0f}</div><div class="mlbl">Retail</div></div>', unsafe_allow_html=True)
-
-# ══════════════════════════════════════════════════════════════════════════════
-# TAB 3 — REPAIR CALCULATOR
-# ══════════════════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════
+#  TAB 3 — REPAIR CALCULATOR
+# ══════════════════════════════════════════════════════
 with tab_repair:
-    st.markdown('<div class="lbl">Repair Bidding</div>', unsafe_allow_html=True)
+    rl, rr = st.columns([1.1, 1], gap="large")
 
-    repair_materials = {
-        "Shingles (bundle)": 45,
-        "Flashing Kit": 85,
-        "Underlayment (roll)": 120,
-        "Vents & Boots": 65,
-        "Gutters (linear ft)": 8,
-        "Tar & Sealants": 35,
-        "Nails & Hardware": 25,
-        "Ice Dam Treatment": 150,
-        "Chimney Cricket": 200,
-        "Valley Repair Kit": 95,
-        "Soffit & Fascia (linear ft)": 12,
-        "Drip Edge (linear ft)": 4,
-        "Vent Flashing": 55,
-        "Pipe Flashing": 45,
-        "Ridge Vent (linear ft)": 10,
-        "Starter Strip (linear ft)": 6,
-        "Netting & Screens": 75,
-        "Caulk (cartridge)": 8,
-        "Sealant (bucket)": 50,
-        "Walkway Pads (set)": 120,
-        "Safety Equipment": 200,
-        "Inspection & Report": 100,
-        "Warranty Document": 50,
-        "Permits & Misc": 150,
-    }
+    with rl:
+        st.markdown('<div class="lbl">Client</div>', unsafe_allow_html=True)
+        r_client = st.text_input("Repair Client", placeholder="Enter client name...", label_visibility="collapsed", key="rep_client")
+        st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="lbl">Materials - Quantities Used</div>', unsafe_allow_html=True)
+        qtys = {}
+        cols = st.columns(2)
+        for i, (name, price, unit) in enumerate(MATERIALS):
+            with cols[i % 2]:
+                qtys[name] = st.number_input(
+                    f"{name}  (${price}/{unit})",
+                    min_value=0.0, value=0.0, step=1.0, format="%.0f", key=f"rep_{i}"
+                )
+        st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="lbl">Labor Tier</div>', unsafe_allow_html=True)
+        labor_opts = [f"{l[0]}  -  ${l[1]:,}" for l in LABOR]
+        labor_sel  = st.radio("Labor", labor_opts, label_visibility="collapsed")
+        labor_idx  = labor_opts.index(labor_sel)
+        labor_cost = LABOR[labor_idx][1]
+        st.markdown(f'<div class="note">{LABOR[labor_idx][2]}</div>', unsafe_allow_html=True)
+        st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
+        r_use_cust = st.checkbox("Enable custom GPM", key="rep_cust")
+        r_custom_gpm = None
+        if r_use_cust:
+            r_custom_gpm = st.slider("Repair Custom GPM", min_value=0.01, max_value=0.99, value=0.60, step=0.01, format="%.0f%%", key="rep_gpm")
+            st.markdown(TICKS, unsafe_allow_html=True)
 
-    mat_col, qty_col = st.columns(2)
-    with mat_col:
-        material = st.selectbox("Material", list(repair_materials.keys()), key="repair_material")
-    with qty_col:
-        quantity = st.number_input("Quantity", value=1, min_value=1, step=1, key="repair_qty")
+    with rr:
+        mat_cost   = sum(qtys[n] * p for n, p, _ in MATERIALS)
+        total_cost = mat_cost + labor_cost
+        used       = [(n, qtys[n], p, qtys[n]*p) for n, p, _ in MATERIALS if qtys[n] > 0]
+        st.markdown('<div class="lbl">Summary</div>', unsafe_allow_html=True)
+        rm1, rm2, rm3 = st.columns(3)
+        with rm1: st.markdown(f'<div class="mbox"><div class="mval">${mat_cost:,.0f}</div><div class="mlbl">Materials</div></div>', unsafe_allow_html=True)
+        with rm2: st.markdown(f'<div class="mbox"><div class="mval">${labor_cost:,.0f}</div><div class="mlbl">Labor</div></div>', unsafe_allow_html=True)
+        with rm3: st.markdown(f'<div class="mbox"><div class="mval">${total_cost:,.0f}</div><div class="mlbl">Total Cost</div></div>', unsafe_allow_html=True)
+        if used:
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown('<div class="lbl">Materials Used</div>', unsafe_allow_html=True)
+            chips = "".join(f'<div class="chip"><strong>{n}</strong> x{int(q)} = ${t:,.0f}</div>' for n, q, p, t in used)
+            st.markdown(f'<div style="margin-bottom:12px">{chips}</div>', unsafe_allow_html=True)
+        st.markdown('<div class="lbl">Pricing Breakdown</div>', unsafe_allow_html=True)
+        if total_cost == 0:
+            st.markdown('<div class="card"><div class="empty"><div class="ei">🔧</div><div class="et">Add materials and select labor to see pricing</div></div></div>', unsafe_allow_html=True)
+        else:
+            rows_html = ""
+            if r_use_cust and r_custom_gpm:
+                cp = gp(total_cost, r_custom_gpm)
+                cf = ru(cp * 1.07)
+                rows_html += f'<tr class="hlr"><td>Custom {int(r_custom_gpm*100)}% GPM</td><td>{int(r_custom_gpm*100)}%</td><td class="big">${cp:,.0f}</td></tr>'
+                rows_html += f'<tr class="finr"><td>Custom GPM + Financing</td><td>—</td><td class="big">${cf:,.0f}</td></tr>'
+                rows_html += '<tr><td colspan="3"><hr style="border-color:#d0d5e0;margin:2px 0;"></td></tr>'
+            for m in [0.40, 0.45, 0.50, 0.55, 0.60]:
+                p = gp(total_cost, m)
+                rows_html += f'<tr><td>{int(m*100)}% GPM</td><td>{int(m*100)}%</td><td class="big">${p:,.0f}</td></tr>'
+            fin60 = ru(gp(total_cost, 0.60) * 1.07)
+            rows_html += f'<tr class="finr"><td>Financing (60% base)</td><td>—</td><td class="big">${fin60:,.0f}</td></tr>'
+            rc = r_client or "—"
+            st.markdown(f'''
+            <div class="chip">Client: <strong>{rc}</strong></div>
+            <div class="chip">Labor: <strong>{LABOR[labor_idx][0]}</strong></div>
+            <div class="chip">Items: <strong>{len(used)}</strong></div><br><br>
+            <div class="cardb">
+              <table class="ptbl">
+                <thead><tr><th>Level</th><th>GPM</th><th>Sale Price</th></tr></thead>
+                <tbody>{rows_html}</tbody>
+              </table>
+            </div>
+            ''', unsafe_allow_html=True)
 
-    material_cost = repair_materials[material] * quantity
-
-    st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
-    st.markdown('<div class="lbl">Labor Tier</div>', unsafe_allow_html=True)
-
-    labor_tiers = {
-        "Basic (Patches, sealing)": 50,
-        "Intermediate (Shingle replacement, flashing)": 85,
-        "Advanced (Restoration, complex repairs)": 120,
-        "Premium (Full structural work)": 150,
-    }
-
-    labor_tier = st.selectbox("Labor Type", list(labor_tiers.keys()), key="repair_labor")
-    labor_rate = labor_tiers[labor_tier]
-    labor_hours = st.number_input("Labor Hours", value=2.0, min_value=0.5, step=0.5, key="repair_hours")
-
-    labor_cost = labor_rate * labor_hours
-
-    st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
-    st.markdown('<div class="lbl">Profit Margin</div>', unsafe_allow_html=True)
-
-    gpm_repair = st.slider("GPM", 40, 60, 50, key="repair_gpm") / 100
-
-    total_cost_repair = material_cost + labor_cost
-    profit_repair = total_cost_repair * gpm_repair
-    retail_repair = total_cost_repair + profit_repair
-
-    col_r1, col_r2, col_r3 = st.columns(3, gap="large")
-    with col_r1:
-        st.markdown(f'<div class="mbox"><div class="mval">${total_cost_repair:,.0f}</div><div class="mlbl">Cost</div></div>', unsafe_allow_html=True)
-    with col_r2:
-        st.markdown(f'<div class="mbox"><div class="mval">${profit_repair:,.0f}</div><div class="mlbl">Profit</div></div>', unsafe_allow_html=True)
-    with col_r3:
-        st.markdown(f'<div class="mbox"><div class="mval">${retail_repair:,.0f}</div><div class="mlbl">Retail</div></div>', unsafe_allow_html=True)
-
-# ══════════════════════════════════════════════════════════════════════════════
-# TAB 4 — CPO & RATE GUIDE
-# ══════════════════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════
+#  TAB 4 — CPO & RATE GUIDE
+# ══════════════════════════════════════════════════════
 with tab_cpo:
-    st.markdown('<div class="lbl">Warranty Comparison</div>', unsafe_allow_html=True)
+    st.markdown('<div class="lbl">GAF Timberline HDZ - CPO Tier Comparison</div>', unsafe_allow_html=True)
+    rows_html = ""
+    for feature, vals in CPO_DATA.items():
+        s, b, si, g = vals
+        rows_html += f"<tr><td><strong>{feature}</strong></td><td>{s}</td><td>{b}</td><td>{si}</td><td>{g}</td></tr>"
+    st.markdown(f"""
+    <div class="card">
+      <table class="wtbl">
+        <thead><tr><th>Feature</th><th class="tier-sig">Signature</th><th class="tier-brz">Bronze</th><th class="tier-sil">Silver</th><th class="tier-gld">Gold</th></tr></thead>
+        <tbody>{rows_html}</tbody>
+      </table>
+    </div>""", unsafe_allow_html=True)
+
+    st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
+    st.markdown('<div class="lbl">CPO Reference Pricing</div>', unsafe_allow_html=True)
     st.markdown("""
     <div class="card">
-      <table class="ptbl">
-        <thead><tr><th>Warranty</th><th>Material</th><th>Workmanship</th><th>Wind</th><th>Hail</th></tr></thead>
+      <table class="wtbl">
+        <thead><tr><th>Payment</th><th class="tier-sig">Signature</th><th class="tier-brz">Bronze</th><th class="tier-sil">Silver</th><th class="tier-gld">Gold</th></tr></thead>
         <tbody>
-          <tr><td><strong>Signature (GAF)</strong></td><td>Lifetime</td><td>10 yrs</td><td>Unlimited mph</td><td>Yes</td></tr>
-          <tr><td><strong>Gold (CertainTeed)</strong></td><td>40 years</td><td>15 yrs</td><td>110+ mph</td><td>Yes</td></tr>
-          <tr><td><strong>Silver (GAF Standard)</strong></td><td>25 years</td><td>10 yrs</td><td>90 mph</td><td>Limited</td></tr>
-          <tr><td><strong>Bronze (Contractor)</strong></td><td>15 years</td><td>5 yrs</td><td>70 mph</td><td>Limited</td></tr>
+          <tr><td><strong>Cash</strong></td><td>$23,700</td><td>$24,500</td><td>$25,500</td><td>$26,800</td></tr>
+          <tr><td><strong>Finance</strong></td><td>$25,400</td><td>$26,200</td><td>$27,300</td><td>$28,700</td></tr>
         </tbody>
       </table>
-    </div>
-    """, unsafe_allow_html=True)
+      <p style="font-size:.75rem;color:#666;margin-top:8px;">Static reference only. Use Full Roof tab for live calculations.</p>
+    </div>""", unsafe_allow_html=True)
 
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
-    st.markdown('<div class="lbl">Per-SQ Rates by Product & Tier</div>', unsafe_allow_html=True)
-
-    RATES = {
-        "GAF Timberline HDZ": {
-            "Signature": (360, 380, 410),
-            "Gold": (340, 360, 390),
-            "Silver": (320, 340, 370),
-            "Bronze": (290, 310, 340),
-        },
-        "GAF Timberline UHDZ": {
-            "Signature": (410, 430, 460),
-            "Gold": (390, 410, 440),
-            "Silver": (370, 390, 420),
-            "Bronze": (340, 360, 390),
-        },
-        "CertainTeed Landmark": {
-            "Gold": (380, 400, 430),
-            "Silver": (350, 370, 400),
-            "Bronze": (320, 340, 370),
-        },
-    }
-
+    st.markdown('<div class="lbl">Per-SQ Rate Reference (All Products)</div>', unsafe_allow_html=True)
     rate_rows = ""
     for prod, tiers in RATES.items():
         for tier, (r1, r2, r3) in tiers.items():
@@ -859,9 +1027,9 @@ with tab_cpo:
       </table>
     </div>""", unsafe_allow_html=True)
 
-# ══════════════════════════════════════════════════════════════════════════════
-# TAB 5 — HANDBOOK Q&A
-# ══════════════════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════
+#  TAB 5 — HANDBOOK Q&A
+# ══════════════════════════════════════════════════════
 with tab_handbook:
     handbook_chunks = load_handbook()
 
@@ -966,8 +1134,8 @@ with tab_handbook:
                     st.session_state.hb_pending_q = ch_query
                     st.rerun()
 
-# ══════════════════════════════════════════════════════════════════════════════
-# TAB 6 — INSTALLED JOBS CATALOGUE
-# ══════════════════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════
+#  TAB 6 — INSTALLED JOBS CATALOGUE
+# ══════════════════════════════════════════════════════
 with tab_jobs:
     render_tab6()
