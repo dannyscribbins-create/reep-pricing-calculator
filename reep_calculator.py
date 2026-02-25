@@ -477,7 +477,11 @@ st.markdown("""
 # Custom Header with Logo
 col_logo, col_header = st.columns([1, 3], gap="medium")
 with col_logo:
-    st.image("Copy_of_AccentRoofing-Logo.png", width=80)
+    logo_path = os.path.join(os.path.dirname(__file__), "Copy_of_AccentRoofing-Logo.png")
+    if os.path.exists(logo_path):
+        st.image(logo_path, width=80)
+    else:
+        st.markdown('<div style="width:80px;height:80px;background:#1e3158;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;">Logo</div>', unsafe_allow_html=True)
 
 with col_header:
     st.markdown("""
