@@ -58,85 +58,9 @@ def search_handbook(query, chunks, top_k=10):
     scored.sort(key=lambda x: -x[0])
     return [c for _, c in scored[:top_k]] or chunks[:top_k]
 
-def get_gemini_model(api_key):
-    """Find the best available Gemini model — prefer 1.5 flash for free tier limits."""
-    import urllib.request
-    # Try v1 endpoint first (where 1.5-flash lives), then v1beta
-    for api_ver in ["v1", "v1beta"]:
-        try:
-            url = f"https://generativelanguage.googleapis.com/{api_ver}/models?key={api_key}"
-            with urllib.request.urlopen(url, timeout=10) as r:
-                data = json.loads(r.read())
-                available = [m["name"].replace("models/", "") for m in data.get("models", [])
-                             if "generateContent" in m.get("supportedGenerationMethods", [])]
-                # Prefer 1.5-flash (1500 RPD free) over 2.5-flash (20 RPD free)
-                priority = [
-                    "gemini-1.5-flash-latest",
-                    "gemini-1.5-flash",
-                    "gemini-1.5-flash-001",
-                    "gemini-1.5-flash-002",
-                    "gemini-1.0-pro-latest",
-                    "gemini-1.0-pro",
-                    "gemini-pro",
-                    "gemini-2.0-flash",
-                    "gemini-2.5-flash",
-                ]
-                for c in priority:
-                    if c in available:
-                        return c, api_ver
-                # Fall back to whatever's available that isn't 2.5
-                for m in available:
-                    if "2.5" not in m:
-                        return m, api_ver
-                return (available[0], api_ver) if available else ("gemini-pro", "v1")
-        except Exception:
-            continue
-    return "gemini-pro", "v1"
-
-def ask_handbook(question, chunks, api_key):
-    """Call Gemini API with relevant handbook chunks."""
-    import urllib.request, urllib.error
-    relevant = search_handbook(question, chunks, top_k=10)
-    context = "\n\n".join(
-        f"[Page {c['page']} — {c['chapter']}]\n{c['text']}"
-        for c in relevant
-    )
-    prompt = """You are a helpful assistant for Thunderbird / Accent Roofing sales representatives.
-You answer questions ONLY using the provided handbook excerpts below.
-
-Rules:
-- Answer clearly and directly.
-- Always cite the source as "Page X — Chapter Name" at the end of your answer.
-- If multiple pages are relevant, cite all of them.
-- If the answer is not found in the excerpts, say: "I couldn't find that in the handbook. Try searching Chapter X or ask your manager."
-- Never make up information not in the excerpts.
-- Keep answers concise but complete — use bullet points for multi-step processes.
-
-HANDBOOK EXCERPTS:
-""" + context + "\n\nQUESTION: " + question
-
-    model, api_ver = get_gemini_model(api_key)
-    payload = json.dumps({
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {"maxOutputTokens": 4096, "temperature": 0.1}
-    }).encode()
-
-    url = f"https://generativelanguage.googleapis.com/{api_ver}/models/{model}:generateContent?key={api_key}"
-    req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
-
-    try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            data = json.loads(resp.read())
-            text = data["candidates"][0]["content"]["parts"][0]["text"]
-            return text, relevant
-    except urllib.error.HTTPError as e:
-        err = e.read().decode()
-        return f"API error ({model}): {e.code} — {err}", []
-    except Exception as e:
-        return f"Error: {str(e)}", []
-import json
-import re
-import os
+def ask_handbook(question, chunks):
+    """Pure local search — no API, instant results."""
+    return search_handbook(question, chunks, top_k=5)
 
 st.set_page_config(page_title="REEP Pricing Calculator", page_icon="🏠", layout="wide")
 
@@ -852,112 +776,91 @@ with tab_cpo:
 with tab_handbook:
     handbook_chunks = load_handbook()
 
-    api_key = None
-    try:
-        api_key = st.secrets["GEMINI_API_KEY"]
-    except Exception:
-        pass
-
-    # Session state init
-    if "hb_messages" not in st.session_state:
-        st.session_state.hb_messages = []
+    if "hb_results" not in st.session_state:
+        st.session_state.hb_results = []
     if "hb_pending_q" not in st.session_state:
         st.session_state.hb_pending_q = ""
 
-    st.markdown('<div class="lbl">Thunderbird Handbook Assistant</div>', unsafe_allow_html=True)
-    st.markdown("""
-    <div class="note">
-        Ask any question about the handbook — sales process, SOPs, bidding, insurance, pay structure, warranties, and more.
-        Every answer includes a reference to where it can be found.
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown('<div class="lbl">Thunderbird Handbook — Instant Search</div>', unsafe_allow_html=True)
+    st.markdown('<div class="note">Search the handbook instantly — shows the exact relevant sections with page number and chapter. Free, instant, no limits.</div>', unsafe_allow_html=True)
 
     if not handbook_chunks:
         st.markdown('<div class="warn">Handbook data not found. Make sure <strong>handbook_chunks.json</strong> is in your GitHub repo.</div>', unsafe_allow_html=True)
-    elif not api_key:
-        st.markdown('<div class="warn">API key not configured. Add <strong>GEMINI_API_KEY</strong> to your Streamlit secrets under Manage App → Settings → Secrets.</div>', unsafe_allow_html=True)
     else:
-        detected_model, detected_ver = get_gemini_model(api_key)
-        st.markdown(f'<div class="note">Using model: <strong>{detected_model}</strong> (API: {detected_ver})</div>', unsafe_allow_html=True)
         hb_col, ref_col = st.columns([1.3, 1], gap="large")
 
         with hb_col:
-            # ── SUGGESTED QUESTIONS ──────────────────────────────
-            st.markdown('<div class="lbl">Suggested Questions — click to ask instantly</div>', unsafe_allow_html=True)
+            st.markdown('<div class="lbl">Suggested Topics — click to search instantly</div>', unsafe_allow_html=True)
             suggestions = [
-                "What are the T-Bird expectations for monthly sales?",
-                "How does the pay commission structure work?",
-                "What is the 5-step sales process?",
-                "How do I handle an insurance claim appointment?",
-                "What are the warranty differences between tiers?",
-                "What is the no-show SOP?",
-                "How do I calculate a full replacement bid?",
-                "What are the repair labor rates?",
+                "T-Bird monthly sales expectations",
+                "Pay commission structure GPM",
+                "5-step sales process flow chart",
+                "Insurance claim appointment steps",
+                "Warranty differences tiers",
+                "No-show SOP procedure",
+                "Full replacement bid calculation",
+                "Repair labor rates",
             ]
             s_cols = st.columns(2)
             for i, s in enumerate(suggestions):
                 if s_cols[i % 2].button(s, key=f"sugg_{i}", use_container_width=True):
                     st.session_state.hb_pending_q = s
 
-            # Auto-fire if suggestion was clicked
             if st.session_state.hb_pending_q:
                 auto_q = st.session_state.hb_pending_q
                 st.session_state.hb_pending_q = ""
-                with st.spinner("Searching handbook..."):
-                    answer, sources = ask_handbook(auto_q, handbook_chunks, api_key)
-                st.session_state.hb_messages.append({"q": auto_q, "a": answer, "sources": sources})
+                results = search_handbook(auto_q, handbook_chunks, top_k=5)
+                st.session_state.hb_results = [{"q": auto_q, "pages": results}] + st.session_state.hb_results
 
             st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
-
-            # ── FREE TEXT INPUT ──────────────────────────────────
-            st.markdown('<div class="lbl">Ask Your Own Question</div>', unsafe_allow_html=True)
-            question = st.text_area(
-                "Question",
-                placeholder="e.g. What is the minimum GPM required for a self-generated lead?",
-                label_visibility="collapsed",
-                height=90,
-                key="hb_question_input"
-            )
+            st.markdown('<div class="lbl">Search the Handbook</div>', unsafe_allow_html=True)
+            question = st.text_area("Search", placeholder="e.g. minimum GPM for self-generated lead",
+                                    label_visibility="collapsed", height=80, key="hb_question_input")
             ask_col, clear_col = st.columns([3, 1])
-            ask_btn   = ask_col.button("🔍  Ask the Handbook", use_container_width=True, type="primary")
+            ask_btn   = ask_col.button("🔍  Search Handbook", use_container_width=True, type="primary")
             clear_btn = clear_col.button("Clear History", use_container_width=True)
 
             if clear_btn:
-                st.session_state.hb_messages = []
+                st.session_state.hb_results = []
                 st.rerun()
 
             if ask_btn and question.strip():
-                with st.spinner("Searching handbook..."):
-                    answer, sources = ask_handbook(question.strip(), handbook_chunks, api_key)
-                st.session_state.hb_messages.append({"q": question.strip(), "a": answer, "sources": sources})
+                results = search_handbook(question.strip(), handbook_chunks, top_k=5)
+                st.session_state.hb_results = [{"q": question.strip(), "pages": results}] + st.session_state.hb_results
 
-            # ── ANSWERS ──────────────────────────────────────────
-            if st.session_state.hb_messages:
+            if st.session_state.hb_results:
                 st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
-                st.markdown('<div class="lbl">Answers</div>', unsafe_allow_html=True)
-                for msg in reversed(st.session_state.hb_messages):
+                for entry in st.session_state.hb_results:
                     st.markdown(f"""
-                    <div class="cardb" style="margin-bottom:14px;">
-                      <div style="font-size:.72rem;color:#7788aa;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Question</div>
-                      <div style="font-size:.92rem;color:#e0e8ff;margin-bottom:12px;font-style:italic;">"{msg['q']}"</div>
-                      <div style="font-size:.72rem;color:#f47c20;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Answer</div>
-                      <div style="font-size:.9rem;color:#d0d8e8;line-height:1.6;white-space:pre-wrap;">{msg['a']}</div>
+                    <div style="background:#1a1d2e;border:1px solid #f47c20;border-radius:8px;padding:14px 18px;margin-bottom:6px;">
+                      <div style="font-size:.68rem;color:#7788aa;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Search</div>
+                      <div style="font-size:.92rem;color:#e0e8ff;font-style:italic;">"{entry['q']}"</div>
                     </div>
                     """, unsafe_allow_html=True)
+                    for page in entry["pages"]:
+                        text = page["text"].strip()
+                        st.markdown(f"""
+                        <div style="background:#14172a;border:1px solid #2d3150;border-left:3px solid #f47c20;border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:10px;">
+                          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                            <span style="font-family:'Barlow Condensed',sans-serif;font-size:.75rem;font-weight:700;color:#f47c20;text-transform:uppercase;letter-spacing:.08em;">Page {page['page']}</span>
+                            <span style="font-size:.68rem;color:#5ba8f5;background:#1a2535;padding:2px 8px;border-radius:10px;">{page['chapter']}</span>
+                          </div>
+                          <div style="font-size:.85rem;color:#c8d0e0;line-height:1.6;white-space:pre-wrap;">{text}</div>
+                        </div>
+                        """, unsafe_allow_html=True)
 
         with ref_col:
-            # ── CHAPTERS AS CLICKABLE BUTTONS ───────────────────
-            st.markdown('<div class="lbl">Browse by Chapter — click to ask about it</div>', unsafe_allow_html=True)
+            st.markdown('<div class="lbl">Browse by Chapter</div>', unsafe_allow_html=True)
             chapters = [
-                ("Chapter 1", "The Fundamentals",        "Mission, values, expectations, pay chart, appointment types",  "Summarize Chapter 1: The Fundamentals"),
-                ("Chapter 2", "5-Step Sales Success",    "Sales flow chart, financing 101, daily checklist",              "What is the 5-step sales process?"),
-                ("Chapter 3", "Insurance 101",           "Claims workflow, overturn process, by-choice appointments",     "Explain the insurance claim workflow"),
-                ("Chapter 4", "Full Replacement Bidding","Consumption chart, GPM magic, shingle costs, warranties",       "How do I calculate a full replacement bid?"),
-                ("Chapter 5", "Repair Bidding",          "Repair quotes, labor rates, materials, workmanship warranties", "What are the repair labor rates and how do I bid a repair?"),
-                ("Chapter 6", "Restoration Bidding",     "Restoration process and pricing",                               "How does restoration bidding work?"),
-                ("Chapter 7", "SOPs",                    "Photo requirements, lead SOPs, payment terms, project submission","What are the key SOPs I need to know?"),
-                ("Chapter 8", "Forms",                   "Chimney release, Xactimate, itel request forms",                "What forms are available and when do I use them?"),
-                ("Chapter 9", "Sales Tools",             "Presentation folder, digital tools, quote attachments",         "What sales tools are available to me?"),
+                ("Chapter 1", "The Fundamentals",         "Mission, values, expectations, pay chart, appointment types",  "T-Bird expectations sales minimum pay commission"),
+                ("Chapter 2", "5-Step Sales Success",     "Sales flow chart, financing 101, daily checklist",              "5-step sales process flow chart visualization"),
+                ("Chapter 3", "Insurance 101",            "Claims workflow, overturn process, by-choice appointments",     "insurance claim workflow adjuster appointment"),
+                ("Chapter 4", "Full Replacement Bidding", "Consumption chart, GPM magic, shingle costs, warranties",       "full replacement bid calculation GPM shingle cost"),
+                ("Chapter 5", "Repair Bidding",           "Repair quotes, labor rates, materials, workmanship warranties", "repair labor rates bid quote materials"),
+                ("Chapter 6", "Restoration Bidding",      "Restoration process and pricing",                               "restoration bidding process pricing"),
+                ("Chapter 7", "SOPs",                     "Photo requirements, lead SOPs, payment terms, project submission","SOP procedure no-show lead follow-up payment"),
+                ("Chapter 8", "Forms",                    "Chimney release, Xactimate, itel request forms",                "forms chimney xactimate itel request"),
+                ("Chapter 9", "Sales Tools",              "Presentation folder, digital tools, quote attachments",         "sales tools presentation folder digital quote"),
             ]
             for ch, title, desc, ch_query in chapters:
                 c1, c2 = st.columns([3, 1])
@@ -970,22 +873,6 @@ with tab_handbook:
                   <div style="font-size:.72rem;color:#7788aa;">{desc}</div>
                 </div>
                 """, unsafe_allow_html=True)
-                if c2.button("Ask", key=f"ch_{ch}", use_container_width=True):
+                if c2.button("Browse", key=f"ch_{ch}", use_container_width=True):
                     st.session_state.hb_pending_q = ch_query
                     st.rerun()
-
-            # ── PAGES REFERENCED ────────────────────────────────
-            if st.session_state.hb_messages:
-                st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
-                st.markdown('<div class="lbl">Pages Referenced (Last Answer)</div>', unsafe_allow_html=True)
-                last = st.session_state.hb_messages[-1]
-                for src in last.get("sources", []):
-                    st.markdown(f"""
-                    <div class="card" style="margin-bottom:6px;padding:10px 14px;">
-                      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                        <span style="font-family:'Barlow Condensed',sans-serif;font-size:.72rem;font-weight:700;color:#f47c20;">PAGE {src['page']}</span>
-                        <span style="font-size:.68rem;color:#7788aa;">{src['chapter']}</span>
-                      </div>
-                      <div style="font-size:.75rem;color:#8899aa;line-height:1.4;">{src['text'][:160].strip()}...</div>
-                    </div>
-                    """, unsafe_allow_html=True)
