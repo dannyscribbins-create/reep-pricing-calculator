@@ -799,12 +799,17 @@ with tab_cpo:
 with tab_handbook:
     handbook_chunks = load_handbook()
 
-    # Get API key from Streamlit secrets
     api_key = None
     try:
         api_key = st.secrets["ANTHROPIC_API_KEY"]
     except Exception:
         pass
+
+    # Session state init
+    if "hb_messages" not in st.session_state:
+        st.session_state.hb_messages = []
+    if "hb_pending_q" not in st.session_state:
+        st.session_state.hb_pending_q = ""
 
     st.markdown('<div class="lbl">Thunderbird Handbook Assistant</div>', unsafe_allow_html=True)
     st.markdown("""
@@ -822,8 +827,8 @@ with tab_handbook:
         hb_col, ref_col = st.columns([1.3, 1], gap="large")
 
         with hb_col:
-            # Suggested questions
-            st.markdown('<div class="lbl">Suggested Questions</div>', unsafe_allow_html=True)
+            # ── SUGGESTED QUESTIONS ──────────────────────────────
+            st.markdown('<div class="lbl">Suggested Questions — click to ask instantly</div>', unsafe_allow_html=True)
             suggestions = [
                 "What are the T-Bird expectations for monthly sales?",
                 "How does the pay commission structure work?",
@@ -834,30 +839,30 @@ with tab_handbook:
                 "How do I calculate a full replacement bid?",
                 "What are the repair labor rates?",
             ]
-            cols = st.columns(2)
-            selected_suggestion = None
+            s_cols = st.columns(2)
             for i, s in enumerate(suggestions):
-                if cols[i % 2].button(s, key=f"sugg_{i}", use_container_width=True):
-                    selected_suggestion = s
+                if s_cols[i % 2].button(s, key=f"sugg_{i}", use_container_width=True):
+                    st.session_state.hb_pending_q = s
+
+            # Auto-fire if suggestion was clicked
+            if st.session_state.hb_pending_q:
+                auto_q = st.session_state.hb_pending_q
+                st.session_state.hb_pending_q = ""
+                with st.spinner("Searching handbook..."):
+                    answer, sources = ask_handbook(auto_q, handbook_chunks, api_key)
+                st.session_state.hb_messages.append({"q": auto_q, "a": answer, "sources": sources})
 
             st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
-            st.markdown('<div class="lbl">Ask a Question</div>', unsafe_allow_html=True)
 
-            # Initialize chat history
-            if "hb_messages" not in st.session_state:
-                st.session_state.hb_messages = []
-
-            # Pre-fill from suggestion click
-            default_q = selected_suggestion or ""
+            # ── FREE TEXT INPUT ──────────────────────────────────
+            st.markdown('<div class="lbl">Ask Your Own Question</div>', unsafe_allow_html=True)
             question = st.text_area(
                 "Question",
-                value=default_q,
                 placeholder="e.g. What is the minimum GPM required for a self-generated lead?",
                 label_visibility="collapsed",
                 height=90,
-                key="hb_question"
+                key="hb_question_input"
             )
-
             ask_col, clear_col = st.columns([3, 1])
             ask_btn   = ask_col.button("🔍  Ask the Handbook", use_container_width=True, type="primary")
             clear_btn = clear_col.button("Clear History", use_container_width=True)
@@ -869,13 +874,9 @@ with tab_handbook:
             if ask_btn and question.strip():
                 with st.spinner("Searching handbook..."):
                     answer, sources = ask_handbook(question.strip(), handbook_chunks, api_key)
-                st.session_state.hb_messages.append({
-                    "q": question.strip(),
-                    "a": answer,
-                    "sources": sources
-                })
+                st.session_state.hb_messages.append({"q": question.strip(), "a": answer, "sources": sources})
 
-            # Display chat history newest first
+            # ── ANSWERS ──────────────────────────────────────────
             if st.session_state.hb_messages:
                 st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
                 st.markdown('<div class="lbl">Answers</div>', unsafe_allow_html=True)
@@ -890,30 +891,36 @@ with tab_handbook:
                     """, unsafe_allow_html=True)
 
         with ref_col:
-            st.markdown('<div class="lbl">Handbook Chapters</div>', unsafe_allow_html=True)
+            # ── CHAPTERS AS CLICKABLE BUTTONS ───────────────────
+            st.markdown('<div class="lbl">Browse by Chapter — click to ask about it</div>', unsafe_allow_html=True)
             chapters = [
-                ("Chapter 1", "The Fundamentals", "Mission, values, expectations, pay chart, appointment types"),
-                ("Chapter 2", "5-Step Sales Success", "Sales flow chart, financing 101, daily checklist"),
-                ("Chapter 3", "Insurance 101", "Claims workflow, overturn process, by-choice appointments"),
-                ("Chapter 4", "Full Replacement Bidding", "Consumption chart, GPM magic, shingle costs, warranties"),
-                ("Chapter 5", "Repair Bidding", "Repair quotes, labor rates, materials, workmanship warranties"),
-                ("Chapter 6", "Restoration Bidding", "Restoration process and pricing"),
-                ("Chapter 7", "SOPs", "Photo requirements, lead SOPs, payment terms, project submission"),
-                ("Chapter 8", "Forms", "Chimney release, Xactimate, itel request forms"),
-                ("Chapter 9", "Sales Tools", "Presentation folder, digital tools, quote attachments"),
+                ("Chapter 1", "The Fundamentals",        "Mission, values, expectations, pay chart, appointment types",  "Summarize Chapter 1: The Fundamentals"),
+                ("Chapter 2", "5-Step Sales Success",    "Sales flow chart, financing 101, daily checklist",              "What is the 5-step sales process?"),
+                ("Chapter 3", "Insurance 101",           "Claims workflow, overturn process, by-choice appointments",     "Explain the insurance claim workflow"),
+                ("Chapter 4", "Full Replacement Bidding","Consumption chart, GPM magic, shingle costs, warranties",       "How do I calculate a full replacement bid?"),
+                ("Chapter 5", "Repair Bidding",          "Repair quotes, labor rates, materials, workmanship warranties", "What are the repair labor rates and how do I bid a repair?"),
+                ("Chapter 6", "Restoration Bidding",     "Restoration process and pricing",                               "How does restoration bidding work?"),
+                ("Chapter 7", "SOPs",                    "Photo requirements, lead SOPs, payment terms, project submission","What are the key SOPs I need to know?"),
+                ("Chapter 8", "Forms",                   "Chimney release, Xactimate, itel request forms",                "What forms are available and when do I use them?"),
+                ("Chapter 9", "Sales Tools",             "Presentation folder, digital tools, quote attachments",         "What sales tools are available to me?"),
             ]
-            for ch, title, desc in chapters:
-                st.markdown(f"""
-                <div class="card" style="margin-bottom:8px;padding:12px 16px;">
-                  <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:3px;">
-                    <span style="font-family:'Barlow Condensed',sans-serif;font-size:.68rem;font-weight:700;color:#f47c20;text-transform:uppercase;letter-spacing:.1em;">{ch}</span>
-                    <span style="font-size:.88rem;font-weight:600;color:#e0e0e0;">{title}</span>
+            for ch, title, desc, ch_query in chapters:
+                c1, c2 = st.columns([3, 1])
+                c1.markdown(f"""
+                <div class="card" style="margin-bottom:2px;padding:10px 14px;">
+                  <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:2px;">
+                    <span style="font-family:'Barlow Condensed',sans-serif;font-size:.65rem;font-weight:700;color:#f47c20;text-transform:uppercase;letter-spacing:.1em;">{ch}</span>
+                    <span style="font-size:.85rem;font-weight:600;color:#e0e0e0;">{title}</span>
                   </div>
-                  <div style="font-size:.75rem;color:#7788aa;">{desc}</div>
+                  <div style="font-size:.72rem;color:#7788aa;">{desc}</div>
                 </div>
                 """, unsafe_allow_html=True)
+                if c2.button("Ask", key=f"ch_{ch}", use_container_width=True):
+                    st.session_state.hb_pending_q = ch_query
+                    st.rerun()
 
-            if st.session_state.get("hb_messages"):
+            # ── PAGES REFERENCED ────────────────────────────────
+            if st.session_state.hb_messages:
                 st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
                 st.markdown('<div class="lbl">Pages Referenced (Last Answer)</div>', unsafe_allow_html=True)
                 last = st.session_state.hb_messages[-1]
