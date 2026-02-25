@@ -394,12 +394,25 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.markdown("""
-<div class="hdr">
-  <h1>THUNDERBIRD <span class="acc">HUB</span></h1>
-  <div class="sub">Full Roof · Small Jobs · Repairs · All Products</div>
-</div>
-""", unsafe_allow_html=True)
+col_logo, col_header = st.columns([0.8, 2.2], gap="small")
+with col_logo:
+    logo_path = os.path.join(os.path.dirname(__file__), "Copy_of_AccentRoofing-Logo.png")
+    if os.path.exists(logo_path):
+        st.image(logo_path, width=70)
+
+with col_header:
+    st.markdown("""
+    <div style="padding-top: 8px;">
+        <div style="font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 800; color: #1e3158; margin: 0; line-height: 1.1; letter-spacing: -0.5px;">
+            THUNDERBIRD <span style="color: #b92227;">HUB</span>
+        </div>
+        <div style="color: #666; font-size: 11px; margin-top: 4px; letter-spacing: 0.5px; font-weight: 500;">
+            Powered by Accent Roofing Service
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+st.divider()
 
 # ─── HELPERS ────────────────────────────────────────────────────────
 def ru(v):
