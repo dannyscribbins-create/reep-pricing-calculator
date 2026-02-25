@@ -33,6 +33,30 @@ def search_handbook(query, chunks, top_k=6):
     scored.sort(key=lambda x: -x[0])
     return [c for _, c in scored[:top_k] if _ > 0] or chunks[:top_k]
 
+def get_gemini_model(api_key):
+    """Find the first available Gemini model on this key."""
+    import urllib.request
+    candidates = [
+        "gemini-1.5-flash-latest",
+        "gemini-1.5-flash",
+        "gemini-1.0-pro-latest",
+        "gemini-1.0-pro",
+        "gemini-pro",
+    ]
+    try:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}"
+        with urllib.request.urlopen(url, timeout=10) as r:
+            data = json.loads(r.read())
+            available = [m["name"].replace("models/", "") for m in data.get("models", [])
+                         if "generateContent" in m.get("supportedGenerationMethods", [])]
+            for c in candidates:
+                if c in available:
+                    return c
+            # Return first available generateContent model
+            return available[0] if available else "gemini-pro"
+    except Exception:
+        return "gemini-pro"
+
 def ask_handbook(question, chunks, api_key):
     """Call Gemini API with relevant handbook chunks."""
     import urllib.request, urllib.error
@@ -55,12 +79,13 @@ Rules:
 HANDBOOK EXCERPTS:
 """ + context + "\n\nQUESTION: " + question
 
+    model = get_gemini_model(api_key)
     payload = json.dumps({
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {"maxOutputTokens": 1024, "temperature": 0.1}
     }).encode()
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
     req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
 
     try:
@@ -70,7 +95,7 @@ HANDBOOK EXCERPTS:
             return text, relevant
     except urllib.error.HTTPError as e:
         err = e.read().decode()
-        return f"API error: {e.code} — {err}", []
+        return f"API error ({model}): {e.code} — {err}", []
     except Exception as e:
         return f"Error: {str(e)}", []
 import json
@@ -816,6 +841,8 @@ with tab_handbook:
     elif not api_key:
         st.markdown('<div class="warn">API key not configured. Add <strong>GEMINI_API_KEY</strong> to your Streamlit secrets under Manage App → Settings → Secrets.</div>', unsafe_allow_html=True)
     else:
+        detected_model = get_gemini_model(api_key)
+        st.markdown(f'<div class="note">Using model: <strong>{detected_model}</strong></div>', unsafe_allow_html=True)
         hb_col, ref_col = st.columns([1.3, 1], gap="large")
 
         with hb_col:
