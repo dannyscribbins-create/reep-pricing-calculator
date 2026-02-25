@@ -13,25 +13,50 @@ def load_handbook():
             return json.load(f)
     return []
 
-def search_handbook(query, chunks, top_k=6):
+def search_handbook(query, chunks, top_k=10):
     """Keyword-based retrieval — score each chunk by query term overlap."""
-    query_words = set(re.findall(r'\b\w{3,}\b', query.lower()))
+    query_lower = query.lower()
+    query_words = set(re.findall(r'\b\w{3,}\b', query_lower))
     stop = {"the","and","for","are","you","that","this","with","have","from",
             "they","will","what","when","how","can","our","your","was","not",
             "but","all","its","been","their","has","more","also","any","into"}
     query_words -= stop
+
+    # Also add common synonyms/expansions
+    expansions = {
+        "5-step": ["step","five","flow","chart","sales","process"],
+        "five step": ["step","five","flow","chart","sales","process"],
+        "commission": ["pay","chart","gpm","gross","percent"],
+        "pay": ["commission","chart","gpm","gross","percent","salary"],
+        "insurance": ["claim","adjuster","storm","damage","hail"],
+        "warranty": ["workmanship","material","gaf","year","coverage"],
+        "sop": ["procedure","operating","standard","process"],
+        "repair": ["labor","rate","fix","patch","leak"],
+        "bid": ["quote","calculate","price","cost","estimate"],
+    }
+    for key, synonyms in expansions.items():
+        if key in query_lower:
+            query_words.update(synonyms)
+
     if not query_words:
         return chunks[:top_k]
+
     scored = []
     for chunk in chunks:
         text_lower = chunk["text"].lower()
+        # Count term frequency
         score = sum(text_lower.count(w) for w in query_words)
-        # Boost if query words appear in first 100 chars (likely a heading)
-        heading = text_lower[:100]
-        score += sum(heading.count(w) * 3 for w in query_words)
-        scored.append((score, chunk))
+        # Boost heading matches (first 150 chars)
+        heading = text_lower[:150]
+        score += sum(heading.count(w) * 4 for w in query_words)
+        # Boost chapter matches
+        chapter_lower = chunk["chapter"].lower()
+        score += sum(chapter_lower.count(w) * 3 for w in query_words)
+        if score > 0:
+            scored.append((score, chunk))
+
     scored.sort(key=lambda x: -x[0])
-    return [c for _, c in scored[:top_k] if _ > 0] or chunks[:top_k]
+    return [c for _, c in scored[:top_k]] or chunks[:top_k]
 
 def get_gemini_model(api_key):
     """Find the first available Gemini model on this key."""
@@ -60,7 +85,7 @@ def get_gemini_model(api_key):
 def ask_handbook(question, chunks, api_key):
     """Call Gemini API with relevant handbook chunks."""
     import urllib.request, urllib.error
-    relevant = search_handbook(question, chunks, top_k=7)
+    relevant = search_handbook(question, chunks, top_k=10)
     context = "\n\n".join(
         f"[Page {c['page']} — {c['chapter']}]\n{c['text']}"
         for c in relevant
@@ -82,7 +107,7 @@ HANDBOOK EXCERPTS:
     model = get_gemini_model(api_key)
     payload = json.dumps({
         "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {"maxOutputTokens": 1024, "temperature": 0.1}
+        "generationConfig": {"maxOutputTokens": 4096, "temperature": 0.1}
     }).encode()
 
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
