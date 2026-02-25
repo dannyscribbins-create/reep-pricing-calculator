@@ -59,28 +59,39 @@ def search_handbook(query, chunks, top_k=10):
     return [c for _, c in scored[:top_k]] or chunks[:top_k]
 
 def get_gemini_model(api_key):
-    """Find the first available Gemini model on this key."""
+    """Find the best available Gemini model — prefer 1.5 flash for free tier limits."""
     import urllib.request
-    candidates = [
-        "gemini-1.5-flash-latest",
-        "gemini-1.5-flash",
-        "gemini-1.0-pro-latest",
-        "gemini-1.0-pro",
-        "gemini-pro",
-    ]
-    try:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}"
-        with urllib.request.urlopen(url, timeout=10) as r:
-            data = json.loads(r.read())
-            available = [m["name"].replace("models/", "") for m in data.get("models", [])
-                         if "generateContent" in m.get("supportedGenerationMethods", [])]
-            for c in candidates:
-                if c in available:
-                    return c
-            # Return first available generateContent model
-            return available[0] if available else "gemini-pro"
-    except Exception:
-        return "gemini-pro"
+    # Try v1 endpoint first (where 1.5-flash lives), then v1beta
+    for api_ver in ["v1", "v1beta"]:
+        try:
+            url = f"https://generativelanguage.googleapis.com/{api_ver}/models?key={api_key}"
+            with urllib.request.urlopen(url, timeout=10) as r:
+                data = json.loads(r.read())
+                available = [m["name"].replace("models/", "") for m in data.get("models", [])
+                             if "generateContent" in m.get("supportedGenerationMethods", [])]
+                # Prefer 1.5-flash (1500 RPD free) over 2.5-flash (20 RPD free)
+                priority = [
+                    "gemini-1.5-flash-latest",
+                    "gemini-1.5-flash",
+                    "gemini-1.5-flash-001",
+                    "gemini-1.5-flash-002",
+                    "gemini-1.0-pro-latest",
+                    "gemini-1.0-pro",
+                    "gemini-pro",
+                    "gemini-2.0-flash",
+                    "gemini-2.5-flash",
+                ]
+                for c in priority:
+                    if c in available:
+                        return c, api_ver
+                # Fall back to whatever's available that isn't 2.5
+                for m in available:
+                    if "2.5" not in m:
+                        return m, api_ver
+                return (available[0], api_ver) if available else ("gemini-pro", "v1")
+        except Exception:
+            continue
+    return "gemini-pro", "v1"
 
 def ask_handbook(question, chunks, api_key):
     """Call Gemini API with relevant handbook chunks."""
@@ -104,13 +115,13 @@ Rules:
 HANDBOOK EXCERPTS:
 """ + context + "\n\nQUESTION: " + question
 
-    model = get_gemini_model(api_key)
+    model, api_ver = get_gemini_model(api_key)
     payload = json.dumps({
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {"maxOutputTokens": 4096, "temperature": 0.1}
     }).encode()
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/{api_ver}/models/{model}:generateContent?key={api_key}"
     req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
 
     try:
@@ -866,8 +877,8 @@ with tab_handbook:
     elif not api_key:
         st.markdown('<div class="warn">API key not configured. Add <strong>GEMINI_API_KEY</strong> to your Streamlit secrets under Manage App → Settings → Secrets.</div>', unsafe_allow_html=True)
     else:
-        detected_model = get_gemini_model(api_key)
-        st.markdown(f'<div class="note">Using model: <strong>{detected_model}</strong></div>', unsafe_allow_html=True)
+        detected_model, detected_ver = get_gemini_model(api_key)
+        st.markdown(f'<div class="note">Using model: <strong>{detected_model}</strong> (API: {detected_ver})</div>', unsafe_allow_html=True)
         hb_col, ref_col = st.columns([1.3, 1], gap="large")
 
         with hb_col:
