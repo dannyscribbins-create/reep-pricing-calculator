@@ -76,17 +76,17 @@ st.set_page_config(
 # ─── LOGIN GATE (Google OAuth) ──────────────────────────────────────
 import urllib.parse
 import urllib.request
-import hashlib
-import base64
-import hmac
 
 def get_google_auth_url():
     """Build Google OAuth authorization URL."""
-    client_id  = st.secrets["google"]["client_id"]
-    redirect   = st.secrets["google"]["redirect_uri"]
-    state      = base64.urlsafe_b64encode(os.urandom(16)).decode()
+    try:
+        client_id  = st.secrets["google"]["client_id"]
+        redirect   = st.secrets["google"]["redirect_uri"]
+    except Exception as e:
+        return f"#error-reading-secrets"
+    state = "tbird" + str(abs(hash(client_id)))[:8]
     st.session_state.oauth_state = state
-    params = {
+    params = urllib.parse.urlencode({
         "client_id":     client_id,
         "redirect_uri":  redirect,
         "response_type": "code",
@@ -94,8 +94,8 @@ def get_google_auth_url():
         "state":         state,
         "access_type":   "online",
         "prompt":        "select_account",
-    }
-    return "https://accounts.google.com/o/oauth2/v2/auth?" + urllib.parse.urlencode(params)
+    })
+    return "https://accounts.google.com/o/oauth2/v2/auth?" + params
 
 def exchange_code_for_email(code):
     """Exchange OAuth code for user email."""
