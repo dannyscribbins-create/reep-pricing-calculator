@@ -73,6 +73,158 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# ─── LOGIN GATE (Google OAuth) ──────────────────────────────────────
+import urllib.parse
+import urllib.request
+import hashlib
+import base64
+import hmac
+
+def get_google_auth_url():
+    """Build Google OAuth authorization URL."""
+    client_id  = st.secrets["google"]["client_id"]
+    redirect   = st.secrets["google"]["redirect_uri"]
+    state      = base64.urlsafe_b64encode(os.urandom(16)).decode()
+    st.session_state.oauth_state = state
+    params = {
+        "client_id":     client_id,
+        "redirect_uri":  redirect,
+        "response_type": "code",
+        "scope":         "openid email profile",
+        "state":         state,
+        "access_type":   "online",
+        "prompt":        "select_account",
+    }
+    return "https://accounts.google.com/o/oauth2/v2/auth?" + urllib.parse.urlencode(params)
+
+def exchange_code_for_email(code):
+    """Exchange OAuth code for user email."""
+    try:
+        client_id     = st.secrets["google"]["client_id"]
+        client_secret = st.secrets["google"]["client_secret"]
+        redirect      = st.secrets["google"]["redirect_uri"]
+        # Exchange code for token
+        payload = urllib.parse.urlencode({
+            "code":          code,
+            "client_id":     client_id,
+            "client_secret": client_secret,
+            "redirect_uri":  redirect,
+            "grant_type":    "authorization_code",
+        }).encode()
+        req = urllib.request.Request(
+            "https://oauth2.googleapis.com/token",
+            data=payload,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            method="POST"
+        )
+        with urllib.request.urlopen(req, timeout=15) as r:
+            tokens = json.loads(r.read())
+        access_token = tokens.get("access_token")
+        if not access_token:
+            return None, "Token exchange failed"
+        # Get user info
+        req2 = urllib.request.Request(
+            "https://www.googleapis.com/oauth2/v2/userinfo",
+            headers={"Authorization": f"Bearer {access_token}"}
+        )
+        with urllib.request.urlopen(req2, timeout=15) as r:
+            userinfo = json.loads(r.read())
+        return userinfo.get("email"), userinfo.get("name", "")
+    except Exception as e:
+        return None, str(e)
+
+def is_allowed_email(email):
+    """Check if email is in the approved list."""
+    try:
+        allowed = list(st.secrets["allowed_emails"].values())
+        return email.lower() in [e.lower() for e in allowed]
+    except Exception:
+        return False
+
+def show_login():
+    st.markdown("""
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
+    html, body, [class*="css"] { font-family: 'Barlow', sans-serif; background:#f5f0eb; color:#1e3158; }
+    .stButton>button { background:#fff !important; border:1px solid #dde3ee !important; color:#1e3158 !important; font-weight:600 !important; }
+    .stButton>button:hover { background:#f8f9ff !important; border-color:#b92227 !important; }
+    </style>
+    """, unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns([1, 1.2, 1])
+    with col2:
+        st.markdown("""
+        <div style="text-align:center;margin-top:80px;margin-bottom:28px;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:2.4rem;font-weight:800;
+                      color:#1e3158;text-transform:uppercase;letter-spacing:.04em;line-height:1;">
+            THUNDERBIRD <span style="color:#b92227;">HUB</span>
+          </div>
+          <div style="font-size:.72rem;color:#888;text-transform:uppercase;letter-spacing:.12em;margin-top:4px;">
+            Powered by Accent Roofing Service
+          </div>
+        </div>
+        <div style="background:#fff;border:1px solid #dde3ee;border-radius:12px;padding:32px 28px;
+                    box-shadow:0 4px 24px rgba(30,49,88,.08);text-align:center;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:.72rem;font-weight:700;
+                      letter-spacing:.14em;text-transform:uppercase;color:#b92227;margin-bottom:20px;">
+            Team Sign In
+          </div>
+        """, unsafe_allow_html=True)
+
+        auth_url = get_google_auth_url()
+        st.markdown(f"""
+        <a href="{auth_url}" target="_self" style="text-decoration:none;">
+          <div style="display:flex;align-items:center;justify-content:center;gap:12px;
+                      background:#fff;border:1px solid #dde3ee;border-radius:8px;padding:12px 20px;
+                      cursor:pointer;transition:all .2s;font-size:.95rem;font-weight:600;color:#1e3158;">
+            <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+            Sign in with Google
+          </div>
+        </a>
+        """, unsafe_allow_html=True)
+
+        st.markdown("""
+        <div style="margin-top:16px;font-size:.72rem;color:#aaa;">
+          Only approved Thunderbird team emails can access this app.
+        </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        if st.session_state.get("login_error"):
+            st.markdown(f"""
+            <div style="background:#fff5f5;border-left:3px solid #b92227;border-radius:0 6px 6px 0;
+                        padding:8px 12px;font-size:.82rem;color:#b92227;margin-top:12px;">
+              {st.session_state.login_error}
+            </div>
+            """, unsafe_allow_html=True)
+
+# ── Session state init ───────────────────────────────────────────────
+if "logged_in"    not in st.session_state: st.session_state.logged_in    = False
+if "current_user" not in st.session_state: st.session_state.current_user = ""
+if "login_error"  not in st.session_state: st.session_state.login_error  = ""
+if "oauth_state"  not in st.session_state: st.session_state.oauth_state  = ""
+
+# ── Handle OAuth callback ────────────────────────────────────────────
+params = st.query_params
+if "code" in params and not st.session_state.logged_in:
+    code  = params["code"]
+    state = params.get("state", "")
+    email, name = exchange_code_for_email(code)
+    st.query_params.clear()
+    if email and is_allowed_email(email):
+        st.session_state.logged_in    = True
+        st.session_state.current_user = name or email
+        st.session_state.current_email = email
+        st.session_state.login_error  = ""
+    else:
+        st.session_state.login_error = f"Access denied. {email or 'That account'} is not on the approved team list. Contact your manager."
+
+if not st.session_state.logged_in:
+    show_login()
+    st.stop()
+
+# ─── END LOGIN GATE ─────────────────────────────────────────────────
+
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
@@ -413,6 +565,26 @@ with col_header:
     """, unsafe_allow_html=True)
 
 st.divider()
+
+# ─── SIDEBAR LOGOUT ──────────────────────────────────────────────────
+with st.sidebar:
+    st.markdown(f"""
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:.7rem;font-weight:700;
+                letter-spacing:.1em;text-transform:uppercase;color:#b92227;margin-bottom:4px;">
+        Signed In
+    </div>
+    <div style="font-size:.88rem;color:#1e3158;font-weight:600;margin-bottom:2px;">
+        {st.session_state.current_user}
+    </div>
+    <div style="font-size:.72rem;color:#888;margin-bottom:16px;">
+        {st.session_state.get('current_email', '')}
+    </div>
+    """, unsafe_allow_html=True)
+    if st.button("Sign Out", use_container_width=True):
+        st.session_state.logged_in = False
+        st.session_state.current_user = ""
+        st.session_state.current_email = ""
+        st.rerun()
 
 # ─── HELPERS ────────────────────────────────────────────────────────
 def ru(v):
