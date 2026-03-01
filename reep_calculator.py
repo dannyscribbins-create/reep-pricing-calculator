@@ -73,6 +73,12 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+st.markdown("""
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Thunderbird Hub">
+""", unsafe_allow_html=True)
+
 # ─── LOGIN GATE (Google OAuth) ──────────────────────────────────────
 import urllib.parse
 import urllib.request
