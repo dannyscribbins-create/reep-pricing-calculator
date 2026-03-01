@@ -80,8 +80,8 @@ import urllib.request
 def get_google_auth_url():
     """Build Google OAuth authorization URL."""
     try:
-        client_id  = st.secrets["google"]["client_id"]
-        redirect   = st.secrets["google"]["redirect_uri"]
+        client_id  = os.environ["GOOGLE_CLIENT_ID"]
+        redirect   = os.environ["GOOGLE_REDIRECT_URI"]
     except Exception as e:
         return f"#error-reading-secrets"
     state = "tbird" + str(abs(hash(client_id)))[:8]
@@ -100,9 +100,9 @@ def get_google_auth_url():
 def exchange_code_for_email(code):
     """Exchange OAuth code for user email."""
     try:
-        client_id     = st.secrets["google"]["client_id"]
-        client_secret = st.secrets["google"]["client_secret"]
-        redirect      = st.secrets["google"]["redirect_uri"]
+        client_id     = os.environ["GOOGLE_CLIENT_ID"]
+        client_secret = os.environ["GOOGLE_CLIENT_SECRET"]
+        redirect      = os.environ["GOOGLE_REDIRECT_URI"]
         # Exchange code for token
         payload = urllib.parse.urlencode({
             "code":          code,
@@ -136,7 +136,8 @@ def exchange_code_for_email(code):
 def is_allowed_email(email):
     """Check if email is in the approved list."""
     try:
-        allowed = list(st.secrets["allowed_emails"].values())
+        allowed_str = os.environ.get("ALLOWED_EMAILS", "")
+        allowed = [e.strip() for e in allowed_str.split(",") if e.strip()]
         return email.lower() in [e.lower() for e in allowed]
     except Exception:
         return False
