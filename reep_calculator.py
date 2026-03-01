@@ -74,7 +74,7 @@ st.set_page_config(
 )
 
 st.markdown("""
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/app/static/apple-touch-icon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="Thunderbird Hub">
 """, unsafe_allow_html=True)
