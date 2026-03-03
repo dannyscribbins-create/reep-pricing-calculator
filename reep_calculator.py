@@ -597,7 +597,13 @@ def waste_std(sq, facets):
     elif facets <= 20:  m = 1.17
     elif facets <= 35:  m = 1.20
     else:               m = 1.25
-    return ru(sq * m)
+    raw = sq * m
+    # Handbook rule: if result is within 0.15 of the next whole number, round DOWN instead of up
+    import math as _math
+    floor_val = _math.floor(raw)
+    if raw - floor_val <= 0.15:
+        return floor_val if floor_val > 0 else 1
+    return _math.ceil(raw)
 
 def waste_low(sq, facets, pitch):
     if pitch == 2:
@@ -626,7 +632,7 @@ RATES = {
     "HDZ":                {"Signature":[296,301,307],"Gold":[335,340,346],"Silver":[320,324,330],"Bronze":[305,311,316]},
     "UHDZ":               {"Signature":[317,322,328],"Gold":[356,361,367],"Silver":[341,345,351],"Bronze":[326,332,337]},
     "CAM II / Slateline": {"Signature":[481,486,492],"Gold":[520,525,531],"Silver":[505,509,515],"Bronze":[490,496,501]},
-    "CT Landmark":        {"3-Star Land":[307,311,317],"3-Star Pro":[311,315,321],"4-Star Land":[322,327,333],"4-Star Pro":[326,331,337]},
+    "CT Landmark":        {"3-Star Landmark":[307,311,317],"3-Star Landmark Pro":[315,319,325],"4-Star Landmark":[322,327,333],"4-Star Landmark Pro":[330,335,341]},
     "OC / RS / Prud":     {"OC Dur":[301,306,312],"Royal Sov":[283,288,294],"Prud":[345,350,360]},
 }
 
@@ -634,13 +640,13 @@ TIERS = {
     "HDZ":                ["Signature","Gold","Silver","Bronze"],
     "UHDZ":               ["Signature","Gold","Silver","Bronze"],
     "CAM II / Slateline": ["Signature","Gold","Silver","Bronze"],
-    "CT Landmark":        ["3-Star Land","3-Star Pro","4-Star Land","4-Star Pro"],
+    "CT Landmark":        ["3-Star Landmark","3-Star Landmark Pro","4-Star Landmark","4-Star Landmark Pro"],
     "OC / RS / Prud":     ["OC Dur","Royal Sov","Prud"],
 }
 
 TIER_CLS = {
     "Signature":"tier-sig","Gold":"tier-gld","Silver":"tier-sil","Bronze":"tier-brz",
-    "3-Star Land":"tier-sil","3-Star Pro":"tier-sil","4-Star Land":"tier-gld","4-Star Pro":"tier-gld",
+    "3-Star Landmark":"tier-sil","3-Star Landmark Pro":"tier-sil","4-Star Landmark":"tier-gld","4-Star Landmark Pro":"tier-gld",
     "OC Dur":"tier-sig","Royal Sov":"tier-sil","Prud":"tier-gld",
 }
 
@@ -918,11 +924,50 @@ with tab_large:
         if use_cust:
             custom_gpm = st.slider("Custom GPM", min_value=0.01, max_value=0.99, value=0.32, step=0.01, format="%.0f%%", key="lg_gpm")
             st.markdown(TICKS, unsafe_allow_html=True)
+            st.markdown(f'<div style="font-size:.75rem;color:#1e3158;margin-top:-6px;margin-bottom:4px;">Selected: <strong>{int(custom_gpm*100)}% GPM</strong></div>', unsafe_allow_html=True)
 
         st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
-        st.markdown('<div class="lbl">Deck Over GPM</div>', unsafe_allow_html=True)
-        deck_gpm = st.slider("Deck GPM", min_value=0.01, max_value=0.99, value=0.33, step=0.01, format="%.0f%%", key="lg_deck_gpm")
-        st.markdown(TICKS, unsafe_allow_html=True)
+        use_deck = st.checkbox("Enable Deck Over Calculator", key="lg_use_deck")
+        deck_gpm = 0.33
+        if use_deck:
+            st.markdown('<div class="lbl">Deck Over GPM</div>', unsafe_allow_html=True)
+            deck_gpm = st.slider("Deck GPM", min_value=0.01, max_value=0.99, value=0.33, step=0.01, format="%.0f%%", key="lg_deck_gpm")
+            st.markdown(TICKS, unsafe_allow_html=True)
+            st.markdown(f'<div style="font-size:.75rem;color:#1e3158;margin-top:-6px;margin-bottom:4px;">Selected: <strong>{int(deck_gpm*100)}% GPM</strong></div>', unsafe_allow_html=True)
+
+        st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="lbl">Add-Ons & Extra Costs</div>', unsafe_allow_html=True)
+
+        # Extra layer removal
+        extra_layers_on = st.checkbox("Extra layer removal ($25/layer/SQ)", key="lg_extra_layers")
+        extra_layer_cost = 0
+        if extra_layers_on:
+            extra_layer_count = st.number_input("Number of extra layers", min_value=1, max_value=10, value=1, step=1, key="lg_layer_count")
+            if std_tsq > 0:
+                extra_layer_cost = extra_layer_count * std_tsq * 25
+                st.markdown(f'<div style="font-size:.78rem;color:#b92227;margin-top:2px;">Extra layer removal adds: <strong>${extra_layer_cost:,.0f}</strong></div>', unsafe_allow_html=True)
+
+        # Permit
+        permit_on = st.checkbox("Permit required (+$300)", key="lg_permit")
+        permit_cost = 300 if permit_on else 0
+        if permit_on:
+            st.markdown('<div style="font-size:.78rem;color:#b92227;margin-top:2px;">Permit fee <strong>$300</strong> applied.</div>', unsafe_allow_html=True)
+
+        # Counter flashing
+        counter_flash_on = st.checkbox("Counter flashing ($10/ft)", key="lg_cf_on")
+        counter_flash_cost = 0
+        if counter_flash_on:
+            cf_feet = st.number_input("Counter flashing linear feet", min_value=1, value=10, step=1, key="lg_cf_feet")
+            counter_flash_cost = cf_feet * 10
+            st.markdown(f'<div style="font-size:.78rem;color:#b92227;margin-top:2px;">Counter flashing adds: <strong>${counter_flash_cost:,.0f}</strong></div>', unsafe_allow_html=True)
+
+        # Referral fee
+        referral_on = st.checkbox("Referral fee (+$500)", key="lg_referral")
+        referral_cost = 500 if referral_on else 0
+        if referral_on:
+            st.markdown('<div style="font-size:.78rem;color:#b92227;margin-top:2px;">Referral fee <strong>$500</strong> applied.</div>', unsafe_allow_html=True)
+
+        addon_cost = extra_layer_cost + permit_cost + counter_flash_cost + referral_cost
 
         st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
         st.markdown('<div class="lbl">Client Presentation Price</div>', unsafe_allow_html=True)
@@ -934,11 +979,15 @@ with tab_large:
         show_financing = st.checkbox("Show financing price on presentation", value=True, key="lg_show_fin")
 
         if std_tsq > 0:
-            sh, sh_cost, sh_price = deck_info(total_tsq, deck_gpm)
-            m1, m2, m3 = st.columns(3)
+            m1, m2 = st.columns(2)
             with m1: st.markdown(f'<div class="mbox"><div class="mval">{total_tsq}</div><div class="mlbl">Adj. SQ</div></div>', unsafe_allow_html=True)
-            with m2: st.markdown(f'<div class="mbox"><div class="mval">{sh}</div><div class="mlbl">Deck Sheets</div></div>', unsafe_allow_html=True)
-            with m3: st.markdown(f'<div class="mbox"><div class="mval">${sh_price:,.0f}</div><div class="mlbl">Deck Price</div></div>', unsafe_allow_html=True)
+            if addon_cost > 0:
+                with m2: st.markdown(f'<div class="mbox"><div class="mval" style="color:#b92227;">${addon_cost:,.0f}</div><div class="mlbl">Add-Ons Total</div></div>', unsafe_allow_html=True)
+            if use_deck:
+                sh, sh_cost, sh_price = deck_info(total_tsq, deck_gpm)
+                d1, d2 = st.columns(2)
+                with d1: st.markdown(f'<div class="mbox"><div class="mval">{sh}</div><div class="mlbl">Deck Sheets</div></div>', unsafe_allow_html=True)
+                with d2: st.markdown(f'<div class="mbox"><div class="mval">${sh_price:,.0f}</div><div class="mlbl">Deck Price</div></div>', unsafe_allow_html=True)
             if add_low and low_tsq > 0:
                 st.markdown(f'<div class="note">Low slope: {low_tsq} adj. SQ - ${low_lc:,.0f} added to all tier costs</div>', unsafe_allow_html=True)
 
@@ -955,7 +1004,7 @@ with tab_large:
             tier_tabs = st.tabs(tiers)
             for i, tier in enumerate(tiers):
                 with tier_tabs[i]:
-                    c = cost_large(std_tsq, std_pitch, product, tier, lc=low_lc)
+                    c = cost_large(std_tsq, std_pitch, product, tier, lc=low_lc) + addon_cost
                     cpsq = c / std_tsq if std_tsq else 0
                     rows = price_rows(c, LARGE_GPMS, custom_gpm)
                     t1, t2, t3 = st.columns(3)
@@ -973,7 +1022,7 @@ with tab_large:
                 for tier in TIERS[product]:
                     if tier not in TIER_FEATURES:
                         continue
-                    c = cost_large(std_tsq, std_pitch, product, tier, lc=low_lc)
+                    c = cost_large(std_tsq, std_pitch, product, tier, lc=low_lc) + addon_cost
                     cash_p = gp(c, pres_margin)
                     fin_p  = ru(cash_p * 1.07) if show_financing else None
                     tiers_with_prices[tier] = (cash_p, fin_p)
@@ -1027,6 +1076,7 @@ with tab_small:
         if sm_use_cust:
             s_custom_gpm = st.slider("Custom GPM", min_value=0.01, max_value=0.99, value=0.50, step=0.01, format="%.0f%%", key="sm_gpm")
             st.markdown(TICKS, unsafe_allow_html=True)
+            st.markdown(f'<div style="font-size:.75rem;color:#1e3158;margin-top:-6px;margin-bottom:4px;">Selected: <strong>{int(s_custom_gpm*100)}% GPM</strong></div>', unsafe_allow_html=True)
 
         st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
         st.markdown('<div class="lbl">Client Presentation Price</div>', unsafe_allow_html=True)
@@ -1110,6 +1160,7 @@ with tab_repair:
         if r_use_cust:
             r_custom_gpm = st.slider("Repair Custom GPM", min_value=0.01, max_value=0.99, value=0.60, step=0.01, format="%.0f%%", key="rep_gpm")
             st.markdown(TICKS, unsafe_allow_html=True)
+            st.markdown(f'<div style="font-size:.75rem;color:#1e3158;margin-top:-6px;margin-bottom:4px;">Selected: <strong>{int(r_custom_gpm*100)}% GPM</strong></div>', unsafe_allow_html=True)
 
     with rr:
         mat_cost   = sum(qtys[n] * p for n, p, _ in MATERIALS)
