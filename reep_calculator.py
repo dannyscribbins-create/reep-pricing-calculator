@@ -597,13 +597,7 @@ def waste_std(sq, facets):
     elif facets <= 20:  m = 1.17
     elif facets <= 35:  m = 1.20
     else:               m = 1.25
-    raw = sq * m
-    # Handbook rule: if result is within 0.15 of the next whole number, round DOWN instead of up
-    import math as _math
-    floor_val = _math.floor(raw)
-    if raw - floor_val <= 0.15:
-        return floor_val if floor_val > 0 else 1
-    return _math.ceil(raw)
+    return ru(sq * m)
 
 def waste_low(sq, facets, pitch):
     if pitch == 2:
@@ -632,7 +626,7 @@ RATES = {
     "HDZ":                {"Signature":[296,301,307],"Gold":[335,340,346],"Silver":[320,324,330],"Bronze":[305,311,316]},
     "UHDZ":               {"Signature":[317,322,328],"Gold":[356,361,367],"Silver":[341,345,351],"Bronze":[326,332,337]},
     "CAM II / Slateline": {"Signature":[481,486,492],"Gold":[520,525,531],"Silver":[505,509,515],"Bronze":[490,496,501]},
-    "CT Landmark":        {"3-Star Landmark":[307,311,317],"3-Star Landmark Pro":[315,319,325],"4-Star Landmark":[322,327,333],"4-Star Landmark Pro":[330,335,341]},
+    "CT Landmark":        {"3-Star Land":[307,311,317],"3-Star Pro":[311,315,321],"4-Star Land":[322,327,333],"4-Star Pro":[326,331,337]},
     "OC / RS / Prud":     {"OC Dur":[301,306,312],"Royal Sov":[283,288,294],"Prud":[345,350,360]},
 }
 
@@ -640,13 +634,13 @@ TIERS = {
     "HDZ":                ["Signature","Gold","Silver","Bronze"],
     "UHDZ":               ["Signature","Gold","Silver","Bronze"],
     "CAM II / Slateline": ["Signature","Gold","Silver","Bronze"],
-    "CT Landmark":        ["3-Star Landmark","3-Star Landmark Pro","4-Star Landmark","4-Star Landmark Pro"],
+    "CT Landmark":        ["3-Star Land","3-Star Pro","4-Star Land","4-Star Pro"],
     "OC / RS / Prud":     ["OC Dur","Royal Sov","Prud"],
 }
 
 TIER_CLS = {
     "Signature":"tier-sig","Gold":"tier-gld","Silver":"tier-sil","Bronze":"tier-brz",
-    "3-Star Landmark":"tier-sil","3-Star Landmark Pro":"tier-sil","4-Star Landmark":"tier-gld","4-Star Landmark Pro":"tier-gld",
+    "3-Star Land":"tier-sil","3-Star Pro":"tier-sil","4-Star Land":"tier-gld","4-Star Pro":"tier-gld",
     "OC Dur":"tier-sig","Royal Sov":"tier-sil","Prud":"tier-gld",
 }
 
@@ -684,6 +678,47 @@ def cost_small(total_tsq, tier):
     if total_tsq == 2:              return 800
     if 3 <= total_tsq <= 9:         return total_tsq * 350
     if 10 <= total_tsq <= 19:       return total_tsq * hi
+    return None
+
+def cost_small_product(total_tsq, product, tier):
+    """Returns cost for small job by product. tier is only used for HDZ."""
+    hdz_hi = {"Signature": 335, "Gold": 365, "Silver": 355, "Bronze": 345}
+
+    if product == "HDZ":
+        hi = hdz_hi[tier]
+        if total_tsq == 1:          return 500
+        if total_tsq == 2:          return 800
+        if 3 <= total_tsq <= 9:     return total_tsq * 350
+        if 10 <= total_tsq <= 19:   return total_tsq * hi
+        return None
+
+    # HDZ base rates used as reference
+    hdz_1sq  = 500
+    hdz_2sq  = 800
+    hdz_1_9  = 350   # per SQ rate for 3-9 SQ
+    hdz_sig_hi = 335  # Signature 10-20 rate
+
+    if product == "Royal Sovereign":
+        if total_tsq == 1:          return hdz_1sq - 13
+        if total_tsq == 2:          return hdz_2sq - (13 * 2)
+        if 3 <= total_tsq <= 9:     return total_tsq * (hdz_1_9 - 13)
+        if 10 <= total_tsq <= 19:   return total_tsq * 322
+        return None
+
+    if product == "CT Landmark 3-Star":
+        if total_tsq == 1:          return hdz_1sq
+        if total_tsq == 2:          return hdz_2sq
+        if 3 <= total_tsq <= 9:     return total_tsq * hdz_1_9
+        if 10 <= total_tsq <= 19:   return total_tsq * hdz_sig_hi  # Signature price
+        return None
+
+    if product == "CT Landmark Pro 3-Star":
+        if total_tsq == 1:          return hdz_1sq + 8
+        if total_tsq == 2:          return hdz_2sq + (8 * 2)
+        if 3 <= total_tsq <= 9:     return total_tsq * (hdz_1_9 + 8)
+        if 10 <= total_tsq <= 19:   return total_tsq * (hdz_sig_hi + 8)
+        return None
+
     return None
 
 def price_rows(cost, gpm_list, custom_gpm=None):
@@ -763,51 +798,113 @@ CPO_DATA = {
 }
 
 TIER_PACKAGE_NAMES = {
-    "Signature": "Signature Protection",
-    "Bronze":    "Bronze Protection",
-    "Silver":    "Silver Protection",
-    "Gold":      "Gold Protection",
+    "Signature":  "Signature Protection",
+    "Bronze":     "Bronze Protection",
+    "Silver":     "Silver Protection",
+    "Gold":       "Gold Protection",
+    "3-Star Land":"3-Star Landmark",
+    "3-Star Pro": "3-Star Landmark Pro",
+    "4-Star Land":"4-Star Landmark",
+    "4-Star Pro": "4-Star Landmark Pro",
+    "OC Dur":     "OC Duration Tru Definition",
+    "Royal Sov":  "GAF Royal Sovereign",
+    "Prud":       "Prudential Roof System",
 }
 
 TIER_FEATURES = {
     "Signature": [
-        "50-Year Pro-Rated Material Warranty",
-        "15-Year Workmanship Warranty",
-        "Step Flashing Replaced As Needed",
-        "Standard Pipe Boot Replacement",
-        "Professional Installation",
+        "50-Year Limited Lifetime Labor & Material Warranty through GAF",
+        "15-Year Leak & Workmanship Warranty through Accent Roofing Service",
+        "Unlimited Wind Rating + Class 3 Impact Resistance",
+        "25-Year Algae Stainguard Warranty",
+        "More roof for your money — a full system without the cost competitors charge for",
     ],
     "Bronze": [
-        "50-Year Non Pro-Rated Material Warranty",
-        "15-Year Workmanship Warranty",
-        "Step Flashing Replaced As Needed",
-        "Standard Pipe Boot Replacement",
-        "Professional Installation",
+        "50-Year Non Pro-Rated Material Warranty through GAF",
+        "15-Year Leak & Workmanship Warranty through Accent Roofing Service",
+        "Unlimited Wind Rating + Class 3 Impact Resistance",
+        "25-Year Algae Stainguard Warranty",
+        "Exclusively available through GAF Master Elite Contractors (top 2%)",
     ],
     "Silver": [
-        "50-Year Non Pro-Rated Material Warranty",
-        "15-Year GAF-Backed Workmanship Warranty",
-        "Step Flashing Replaced As Needed",
-        "Standard Pipe Boot Replacement",
-        "Professional Installation",
+        "50-Year Non Pro-Rated Material Warranty through GAF",
+        "15-Year Leak Warranty (10 Yrs GAF + 5 Yrs ARS)",
+        "Unlimited Wind Rating + Class 3 Impact Resistance",
+        "GAF Felt Buster Underlayment — 40x Stronger than Standard Felt",
+        "All Step Flashing Replaced Included",
     ],
     "Gold": [
-        "50-Year Non Pro-Rated Material Warranty",
-        "25-Year GAF-Backed Workmanship Warranty",
-        "ALL Step Flashing Replaced",
-        "Perma-Boot Pipe Boot Upgrade",
-        "Professional Installation",
-        "Maximum Coverage & Peace of Mind",
+        "50-Year Non Pro-Rated Material Warranty through GAF",
+        "25-Year Leak & Workmanship Warranty — the Strongest Available",
+        "Unlimited Wind Rating + Class 3 Impact Resistance",
+        "GAF WeatherWatch Ice & Water Shield + Felt Buster Underlayment",
+        "Perma-Boot Sewer Pipe Covers + All Step Flashing Replaced",
+    ],
+    "3-Star Land": [
+        "Lifetime Labor & Material Warranty through CertainTeed with 20-Year Sure Start Protection",
+        "15-Year Leak & Workmanship Warranty through Accent Roofing Service",
+        "25-Year StreakFighter Algae Protection Warranty",
+        "UL Class 3 Impact Resistance — Rated to 130 MPH Winds",
+        "CertainTeed Roof Runner Synthetic Felt — 40x Stronger than Standard",
+    ],
+    "3-Star Pro": [
+        "50-Year Labor & Material Warranty — Heavier Shingle with Enhanced Color Variation",
+        "15-Year Leak & Workmanship Warranty through Accent Roofing Service",
+        "25-Year StreakFighter Algae Protection Warranty",
+        "UL Class 3 Impact Resistance — Rated to 130 MPH Winds",
+        "CertainTeed Roof Runner Synthetic Felt — 40x Stronger than Standard",
+    ],
+    "4-Star Land": [
+        "Comprehensive 50-Year Labor & Material Warranty through CertainTeed",
+        "15-Year Leak & Workmanship Warranty through Accent Roofing Service",
+        "25-Year StreakFighter Algae Protection + UL Class 3 Impact Resistance",
+        "130 MPH Wind Resistance Rating",
+        "CertainTeed Swift Start Starter Shingles + Shadow Ridge Hip & Ridge Caps",
+    ],
+    "4-Star Pro": [
+        "50-Year Warranty on a Heavier, Premium Shingle with Richer Color Depth",
+        "15-Year Leak & Workmanship Warranty through Accent Roofing Service",
+        "25-Year StreakFighter Algae Protection + UL Class 3 Impact Resistance",
+        "130 MPH Wind Resistance Rating",
+        "CertainTeed Swift Start Starter Shingles + Shadow Ridge Hip & Ridge Caps",
+    ],
+    "OC Dur": [
+        "Limited Lifetime Labor & Material Warranty through Owens Corning",
+        "15-Year Leak & Workmanship Warranty through Accent Roofing Service",
+        "25-Year Algae Stain Guard Warranty",
+        "130 MPH Wind Rating + Impact Resistance",
+        "OC VentSure Ridge Vent + ProEdge Hip & Ridge Caps Included",
+    ],
+    "Royal Sov": [
+        "25-Year Labor & Material Warranty through GAF",
+        "10-Year Leak & Workmanship Warranty through Accent Roofing Service",
+        "Budget-Friendly 3-Tab Option with Proven GAF Quality",
+        "Cobra III Ridge Vent System Included for Attic Ventilation",
+        "Dedicated On-Site Project Manager at No Extra Charge",
+    ],
+    "Prud": [
+        "Limited Lifetime Material & Labor Warranty through CertainTeed",
+        "5-Year Leak & Workmanship Warranty through Accent Roofing Service",
+        "15-Year Algae Fighter Warranty",
+        "Available in Moire Black and Weathered Wood — Color-Matched Drip Edge Included",
+        "Ridge Vent System Replaces Old Box Vents for Superior Attic Airflow",
     ],
 }
 
 CPO_DISPLAY_ORDER = ["Signature", "Bronze", "Silver", "Gold"]
 
 TIER_BADGE_COLORS = {
-    "Signature": ("#b99f2a", "#1a1700"),
-    "Bronze":    ("#8b5a3c", "#1a0f00"),
-    "Silver":    ("#7a8fa3", "#111622"),
-    "Gold":      ("#b92227", "#1a0f00"),
+    "Signature":  ("#b99f2a", "#1a1700"),
+    "Bronze":     ("#8b5a3c", "#1a0f00"),
+    "Silver":     ("#7a8fa3", "#111622"),
+    "Gold":       ("#b92227", "#1a0f00"),
+    "3-Star Land":("#2d7a3a", "#051208"),
+    "3-Star Pro": ("#1e7a5a", "#051210"),
+    "4-Star Land":("#1e4d7b", "#050d18"),
+    "4-Star Pro": ("#4a2d7b", "#0a0518"),
+    "OC Dur":     ("#b99f2a", "#1a1700"),
+    "Royal Sov":  ("#7a8fa3", "#111622"),
+    "Prud":       ("#2d7a3a", "#051208"),
 }
 
 def render_cpo_presentation(client_name, product, tiers_with_prices, financing=True):
@@ -836,7 +933,7 @@ def render_cpo_presentation(client_name, product, tiers_with_prices, financing=T
             f'<div style="font-size:.65rem;color:#666;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;">Finance Option</div>'
             f'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:1.4rem;font-weight:700;color:#1e4d7b;">${fin_price:,.0f}</div>'
             f'</div>'
-        ) if financing and fin_price else ""
+        ) if (financing and fin_price and isinstance(fin_price, (int, float))) else '<div style="margin-top:10px;padding-top:10px;border-top:1px solid #d0d5e0;min-height:20px;"></div>'
 
         cards_html += f"""
         <div style="background:#fff;border:1px solid #d0d5e0;border-radius:10px;padding:20px;flex:1;min-width:160px;display:flex;flex-direction:column;box-shadow:0 2px 8px rgba(30,49,88,0.1);">
@@ -895,7 +992,7 @@ with tab_large:
 
         st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
         add_low = st.checkbox("Add Low Slope Section (1/12 - 3/12)", key="lg_addlow")
-        low_tsq = 0; low_lc = 0
+        low_tsq = 0; low_lc = 0; low_shingled = False
         if add_low:
             st.markdown('<div class="lbl">Low Slope Section</div>', unsafe_allow_html=True)
             lc1, lc2, lc3 = st.columns(3)
@@ -903,9 +1000,28 @@ with tab_large:
             with lc2: lfac   = st.number_input("Low Facets",      min_value=0,   value=0,   step=1,    key="lg_lfac")
             with lc3: lpitch = st.selectbox("Low Pitch", [1, 2, 3], key="lg_lpit")
             if lsq > 0:
-                low_tsq = waste_low(lsq, lfac, lpitch)
-                lc1.markdown(f'<div style="font-size:.72rem;color:#b92227;margin-top:-10px;padding-left:2px;">Adj: <strong>{low_tsq} SQ</strong></div>', unsafe_allow_html=True)
-                low_lc  = low_cost_val(low_tsq, lpitch)
+                if lpitch in [2, 3]:
+                    low_type = st.radio("Low Slope Material", ["Roll Roofing", "Shingled"], horizontal=True, key="lg_lowtype")
+                else:
+                    low_type = "Roll Roofing"
+                if low_type == "Roll Roofing":
+                    low_tsq = waste_low(lsq, lfac, lpitch)
+                    low_lc  = low_tsq * 375
+                    low_shingled = False
+                    lc1.markdown(f'<div style="font-size:.72rem;color:#b92227;margin-top:-10px;padding-left:2px;">Adj: <strong>{low_tsq} SQ</strong></div>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="note">Roll roofing: {low_tsq} adj. SQ × $375 = <strong>${low_lc:,.0f}</strong></div>', unsafe_allow_html=True)
+                else:
+                    # Shingled: apply 5% waste, round up only if > 0.15 above whole number
+                    raw = lsq * 1.05
+                    whole = math.floor(raw)
+                    low_tsq = whole + 1 if (raw - whole) > 0.15 else whole
+                    low_tsq = max(low_tsq, 1)
+                    low_shingled = True
+                    low_lc = 0  # cost calculated per tier in the loop: (tier_rate + $47) * low_tsq
+                    lc1.markdown(f'<div style="font-size:.72rem;color:#b92227;margin-top:-10px;padding-left:2px;">Adj: <strong>{low_tsq} SQ</strong></div>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="note">Shingled low slope: {low_tsq} adj. SQ (5% waste applied). Cost = (tier rate + $47) × {low_tsq} SQ — calculated per tier.</div>', unsafe_allow_html=True)
+            else:
+                low_shingled = False
 
         total_tsq = std_tsq + low_tsq
 
@@ -922,18 +1038,18 @@ with tab_large:
         use_cust = st.checkbox("Enable custom GPM", key="lg_cust")
         custom_gpm = None
         if use_cust:
-            custom_gpm = st.slider("Custom GPM", min_value=0.01, max_value=0.99, value=0.32, step=0.01, format="%.0f%%", key="lg_gpm")
+            custom_gpm = st.slider("Custom GPM", min_value=0.01, max_value=0.99, value=0.32, step=0.01, format=" ", key="lg_gpm")
             st.markdown(TICKS, unsafe_allow_html=True)
-            st.markdown(f'<div style="font-size:.75rem;color:#1e3158;margin-top:-6px;margin-bottom:4px;">Selected: <strong>{int(custom_gpm*100)}% GPM</strong></div>', unsafe_allow_html=True)
+            st.markdown(f'<div style="font-size:.8rem;color:#1e3158;font-weight:600;margin:-8px 0 8px 2px;">Selected GPM: {int(custom_gpm*100)}%</div>', unsafe_allow_html=True)
 
         st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
         use_deck = st.checkbox("Enable Deck Over Calculator", key="lg_use_deck")
         deck_gpm = 0.33
         if use_deck:
             st.markdown('<div class="lbl">Deck Over GPM</div>', unsafe_allow_html=True)
-            deck_gpm = st.slider("Deck GPM", min_value=0.01, max_value=0.99, value=0.33, step=0.01, format="%.0f%%", key="lg_deck_gpm")
+            deck_gpm = st.slider("Deck GPM", min_value=0.01, max_value=0.99, value=0.33, step=0.01, format=" ", key="lg_deck_gpm")
             st.markdown(TICKS, unsafe_allow_html=True)
-            st.markdown(f'<div style="font-size:.75rem;color:#1e3158;margin-top:-6px;margin-bottom:4px;">Selected: <strong>{int(deck_gpm*100)}% GPM</strong></div>', unsafe_allow_html=True)
+            st.markdown(f'<div style="font-size:.8rem;color:#1e3158;font-weight:600;margin:-8px 0 8px 2px;">Selected GPM: {int(deck_gpm*100)}%</div>', unsafe_allow_html=True)
 
         st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
         st.markdown('<div class="lbl">Add-Ons & Extra Costs</div>', unsafe_allow_html=True)
@@ -988,8 +1104,7 @@ with tab_large:
                 d1, d2 = st.columns(2)
                 with d1: st.markdown(f'<div class="mbox"><div class="mval">{sh}</div><div class="mlbl">Deck Sheets</div></div>', unsafe_allow_html=True)
                 with d2: st.markdown(f'<div class="mbox"><div class="mval">${sh_price:,.0f}</div><div class="mlbl">Deck Price</div></div>', unsafe_allow_html=True)
-            if add_low and low_tsq > 0:
-                st.markdown(f'<div class="note">Low slope: {low_tsq} adj. SQ - ${low_lc:,.0f} added to all tier costs</div>', unsafe_allow_html=True)
+
 
     with out_col:
         st.markdown('<div class="lbl">Pricing by Tier</div>', unsafe_allow_html=True)
@@ -1004,7 +1119,13 @@ with tab_large:
             tier_tabs = st.tabs(tiers)
             for i, tier in enumerate(tiers):
                 with tier_tabs[i]:
-                    c = cost_large(std_tsq, std_pitch, product, tier, lc=low_lc) + addon_cost
+                    if low_shingled and low_tsq > 0:
+                        # Shingled low slope: charge (tier_rate_per_sq + $47) * low_tsq
+                        tier_rate = RATES[product][tier][pidx(std_pitch)]
+                        low_lc_tier = (tier_rate + 47) * low_tsq
+                    else:
+                        low_lc_tier = low_lc  # roll roofing flat cost or 0
+                    c = cost_large(std_tsq, std_pitch, product, tier, lc=low_lc_tier) + addon_cost
                     cpsq = c / std_tsq if std_tsq else 0
                     rows = price_rows(c, LARGE_GPMS, custom_gpm)
                     t1, t2, t3 = st.columns(3)
@@ -1020,9 +1141,12 @@ with tab_large:
             with st.expander("📋  Client Presentation View", expanded=False):
                 tiers_with_prices = {}
                 for tier in TIERS[product]:
-                    if tier not in TIER_FEATURES:
-                        continue
-                    c = cost_large(std_tsq, std_pitch, product, tier, lc=low_lc) + addon_cost
+                    if low_shingled and low_tsq > 0:
+                        tier_rate = RATES[product][tier][pidx(std_pitch)]
+                        low_lc_tier = (tier_rate + 47) * low_tsq
+                    else:
+                        low_lc_tier = low_lc
+                    c = cost_large(std_tsq, std_pitch, product, tier, lc=low_lc_tier) + addon_cost
                     cash_p = gp(c, pres_margin)
                     fin_p  = ru(cash_p * 1.07) if show_financing else None
                     tiers_with_prices[tier] = (cash_p, fin_p)
@@ -1039,7 +1163,9 @@ with tab_small:
         st.markdown('<div class="lbl">Client</div>', unsafe_allow_html=True)
         s_client = st.text_input("Client", placeholder="Enter client name...", label_visibility="collapsed", key="sm_client")
         st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
-        st.markdown('<div class="note">Under 20 total adjusted SQ. HDZ product only.</div>', unsafe_allow_html=True)
+        st.markdown('<div class="note">Under 20 total adjusted SQ.</div>', unsafe_allow_html=True)
+        st.markdown('<div class="lbl">Product</div>', unsafe_allow_html=True)
+        sm_product = st.selectbox("Small Job Product", ["HDZ", "Royal Sovereign", "CT Landmark 3-Star", "CT Landmark Pro 3-Star"], label_visibility="collapsed", key="sm_product")
         st.markdown('<div class="lbl">Standard Slope (2/12 - 13/12)</div>', unsafe_allow_html=True)
         sc1, sc2, sc3 = st.columns(3)
         with sc1: s_sq    = st.number_input("Measured SQ", min_value=0.0, value=0.0, step=0.01, format="%.2f", key="sm_sq")
@@ -1074,9 +1200,9 @@ with tab_small:
         sm_use_cust = st.checkbox("Enable custom GPM", key="sm_cust")
         s_custom_gpm = None
         if sm_use_cust:
-            s_custom_gpm = st.slider("Custom GPM", min_value=0.01, max_value=0.99, value=0.50, step=0.01, format="%.0f%%", key="sm_gpm")
+            s_custom_gpm = st.slider("Custom GPM", min_value=0.01, max_value=0.99, value=0.50, step=0.01, format=" ", key="sm_gpm")
             st.markdown(TICKS, unsafe_allow_html=True)
-            st.markdown(f'<div style="font-size:.75rem;color:#1e3158;margin-top:-6px;margin-bottom:4px;">Selected: <strong>{int(s_custom_gpm*100)}% GPM</strong></div>', unsafe_allow_html=True)
+            st.markdown(f'<div style="font-size:.8rem;color:#1e3158;font-weight:600;margin:-8px 0 8px 2px;">Selected GPM: {int(s_custom_gpm*100)}%</div>', unsafe_allow_html=True)
 
         st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
         st.markdown('<div class="lbl">Client Presentation Price</div>', unsafe_allow_html=True)
@@ -1095,38 +1221,68 @@ with tab_small:
             st.markdown('<div class="card"><div class="empty"><div class="ei">📐</div><div class="et">20+ SQ - switch to Full Roof tab</div></div></div>', unsafe_allow_html=True)
         else:
             scl = s_client or "—"
-            st.markdown(f'<div class="chip">Client: <strong>{scl}</strong></div><div class="chip">HDZ</div><div class="chip">Pitch {s_pitch}/12</div><div class="chip">Total SQ: <strong>{s_total_tsq}</strong></div><br><br>', unsafe_allow_html=True)
-            sm_tiers = ["Signature", "Gold", "Silver", "Bronze"]
-            sm_tabs  = st.tabs(sm_tiers)
-            for i, tier in enumerate(sm_tiers):
-                with sm_tabs[i]:
-                    base_cost = cost_small(s_total_tsq, tier)
-                    if base_cost is None:
-                        st.markdown('<div class="warn">Out of range for small job (must be 1-19 SQ).</div>', unsafe_allow_html=True)
-                        continue
+            st.markdown(f'<div class="chip">Client: <strong>{scl}</strong></div><div class="chip">{sm_product}</div><div class="chip">Pitch {s_pitch}/12</div><div class="chip">Total SQ: <strong>{s_total_tsq}</strong></div><br><br>', unsafe_allow_html=True)
+
+            if sm_product == "HDZ":
+                sm_tiers = ["Signature", "Gold", "Silver", "Bronze"]
+                sm_tabs  = st.tabs(sm_tiers)
+                for i, tier in enumerate(sm_tiers):
+                    with sm_tabs[i]:
+                        base_cost = cost_small_product(s_total_tsq, "HDZ", tier)
+                        if base_cost is None:
+                            st.markdown('<div class="warn">Out of range for small job (must be 1-19 SQ).</div>', unsafe_allow_html=True)
+                            continue
+                        c = base_cost + s_low_lc
+                        rows = price_rows(c, SMALL_GPMS, s_custom_gpm)
+                        sm1, sm2 = st.columns(2)
+                        with sm1: st.markdown(f'<div class="mbox"><div class="mval">${c:,.0f}</div><div class="mlbl">Total Cost</div></div>', unsafe_allow_html=True)
+                        with sm2:
+                            tcls = TIER_CLS.get(tier, "")
+                            st.markdown(f'<div class="mbox"><div class="mval {tcls}">{tier}</div><div class="mlbl">Tier</div></div>', unsafe_allow_html=True)
+                        st.markdown("<br>", unsafe_allow_html=True)
+                        st.markdown(render_table(rows, s_total_tsq, show_sq=False), unsafe_allow_html=True)
+            else:
+                base_cost = cost_small_product(s_total_tsq, sm_product, None)
+                if base_cost is None:
+                    st.markdown('<div class="warn">Out of range for small job (must be 1-19 SQ).</div>', unsafe_allow_html=True)
+                else:
                     c = base_cost + s_low_lc
                     rows = price_rows(c, SMALL_GPMS, s_custom_gpm)
                     sm1, sm2 = st.columns(2)
                     with sm1: st.markdown(f'<div class="mbox"><div class="mval">${c:,.0f}</div><div class="mlbl">Total Cost</div></div>', unsafe_allow_html=True)
-                    with sm2:
-                        tcls = TIER_CLS.get(tier, "")
-                        st.markdown(f'<div class="mbox"><div class="mval {tcls}">{tier}</div><div class="mlbl">Tier</div></div>', unsafe_allow_html=True)
+                    with sm2: st.markdown(f'<div class="mbox"><div class="mval tier-sig">{sm_product}</div><div class="mlbl">Product</div></div>', unsafe_allow_html=True)
                     st.markdown("<br>", unsafe_allow_html=True)
                     st.markdown(render_table(rows, s_total_tsq, show_sq=False), unsafe_allow_html=True)
 
             st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
             with st.expander("📋  Client Presentation View", expanded=False):
                 sm_tiers_prices = {}
-                for tier in ["Signature", "Gold", "Silver", "Bronze"]:
-                    base_cost = cost_small(s_total_tsq, tier)
-                    if base_cost is None:
-                        continue
-                    c = base_cost + s_low_lc
-                    cash_p = gp(c, sm_pres_margin)
-                    fin_p  = ru(cash_p * 1.07) if sm_show_fin else None
-                    sm_tiers_prices[tier] = (cash_p, fin_p)
                 scl = s_client or "—"
-                st.markdown(render_cpo_presentation(scl, "HDZ", sm_tiers_prices, financing=sm_show_fin), unsafe_allow_html=True)
+                if sm_product == "HDZ":
+                    for tier in ["Signature", "Gold", "Silver", "Bronze"]:
+                        base_cost = cost_small_product(s_total_tsq, "HDZ", tier)
+                        if base_cost is None:
+                            continue
+                        c = base_cost + s_low_lc
+                        cash_p = gp(c, sm_pres_margin)
+                        fin_p  = ru(cash_p * 1.07) if sm_show_fin else None
+                        sm_tiers_prices[tier] = (cash_p, fin_p)
+                    st.markdown(render_cpo_presentation(scl, "HDZ", sm_tiers_prices, financing=sm_show_fin), unsafe_allow_html=True)
+                else:
+                    base_cost = cost_small_product(s_total_tsq, sm_product, None)
+                    if base_cost is not None:
+                        c = base_cost + s_low_lc
+                        cash_p = gp(c, sm_pres_margin)
+                        fin_p  = ru(cash_p * 1.07) if sm_show_fin else None
+                        # Map product name to tier key for features lookup
+                        prod_tier_map = {
+                            "Royal Sovereign":        "Royal Sov",
+                            "CT Landmark 3-Star":     "3-Star Land",
+                            "CT Landmark Pro 3-Star":  "3-Star Pro",
+                        }
+                        tier_key = prod_tier_map.get(sm_product, sm_product)
+                        sm_tiers_prices[tier_key] = (cash_p, fin_p)
+                        st.markdown(render_cpo_presentation(scl, sm_product, sm_tiers_prices, financing=sm_show_fin), unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════
 #  TAB 3 — REPAIR CALCULATOR
@@ -1158,9 +1314,9 @@ with tab_repair:
         r_use_cust = st.checkbox("Enable custom GPM", key="rep_cust")
         r_custom_gpm = None
         if r_use_cust:
-            r_custom_gpm = st.slider("Repair Custom GPM", min_value=0.01, max_value=0.99, value=0.60, step=0.01, format="%.0f%%", key="rep_gpm")
+            r_custom_gpm = st.slider("Repair Custom GPM", min_value=0.01, max_value=0.99, value=0.60, step=0.01, format=" ", key="rep_gpm")
             st.markdown(TICKS, unsafe_allow_html=True)
-            st.markdown(f'<div style="font-size:.75rem;color:#1e3158;margin-top:-6px;margin-bottom:4px;">Selected: <strong>{int(r_custom_gpm*100)}% GPM</strong></div>', unsafe_allow_html=True)
+            st.markdown(f'<div style="font-size:.8rem;color:#1e3158;font-weight:600;margin:-8px 0 8px 2px;">Selected GPM: {int(r_custom_gpm*100)}%</div>', unsafe_allow_html=True)
 
     with rr:
         mat_cost   = sum(qtys[n] * p for n, p, _ in MATERIALS)
